@@ -1,4 +1,4 @@
-# Lifesight MIA for Claude
+# Ask Lifesight for Claude
 
 Lifesight's marketing measurement inside Claude: marketing mix models (MMM), causal attribution,
 geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies,
@@ -15,7 +15,7 @@ In Claude Code:
 
 ```
 /plugin marketplace add lifesight/ask-lifesight-plugin
-/plugin install lifesight-mia@lifesight
+/plugin install ask-lifesight@lifesight
 ```
 
 The first call opens the Lifesight console login page in your browser; sign in as usual (SSO and

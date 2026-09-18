@@ -1,6 +1,6 @@
 {
   "mcpServers": {
-    "lifesight-mia": {
+    "ask-lifesight": {
       "type": "http",
       "url": "https://mcp.lifesight.io/mcp"
     }

@@ -7,7 +7,7 @@
   },
   "plugins": [
     {
-      "name": "lifesight-mia",
+      "name": "ask-lifesight",
       "source": "./",
       "description": "Lifesight marketing measurement in Claude: the MIA MCP server and the workflow skills."
     }
