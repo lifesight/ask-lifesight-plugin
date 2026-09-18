@@ -48,6 +48,7 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | Is the data fresh, what looks odd in spend | `get_data_source_health`, `detect_spend_anomalies` |
 | What the ad platforms report, in words | `query_ads_data` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
+| Raise a ticket with Lifesight support, or check one (scope `mia.write`) | `raise_support_ticket` |
 | A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_mia_investigation`, `get_mia_investigation` |
 
 The full reference, generated from the server's published surface: [docs/TOOLS.md](docs/TOOLS.md).
@@ -93,5 +94,5 @@ https://lifesight.io/privacy-policy/.
 
 ## Changelog
 
-- 0.1.0 (2026-09-18): first release for the parallel window: 27 tools, 12 skills and prompts,
+- 0.1.0 (2026-09-18): first release for the parallel window: 28 tools, 12 skills and prompts,
   OAuth through the console login, personal access tokens.

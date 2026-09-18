@@ -380,6 +380,24 @@ Parameters:
 - `top_k`, integer: Chunks to return: up to 15 in semantic mode, 10 in keyword mode; the larger end for lists and comparisons.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
+## collaboration
+
+### `raise_support_ticket`: Raise a support ticket
+
+Scope `mia.write`. open-world.
+
+Raise a ticket with Lifesight support in the member's name, or check one raised before (needs the mia.write scope). Use it when the member asks for support or a human, disputes figures, hits an error that a retry will not fix, or finds data missing or wrong. To raise one give summary (one line, the ticket's title), description (the member's own words, never paraphrased away) and category: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation or feature_request; priority low, medium (default), high or critical. To check one give ticket_key only (the key returned when it was raised, never invented). Returns the key and its link, or the ticket's state, assignee and last update. A ticket is visible to Lifesight staff: raise one only when the member asked.
+
+Parameters:
+
+- `category`, string: What kind of issue (to raise). One of: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation, feature_request.
+- `description`, string: The member's own words about the problem (to raise).
+- `priority`, string: How urgent. One of: low, medium, high, critical.
+- `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
+- `summary`, string: One line, the ticket's title (to raise).
+- `ticket_key`, string: A ticket raised before (its key, e.g. MIA-123), to check its state; leave out to raise one.
+- `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
+
 ## cue-cards
 
 ### `get_cue_cards`: Cue cards
