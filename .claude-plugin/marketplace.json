@@ -1,0 +1,15 @@
+{
+  "name": "lifesight",
+  "description": "Lifesight's plugins for Claude.",
+  "owner": {
+    "name": "Lifesight",
+    "url": "https://www.lifesight.io"
+  },
+  "plugins": [
+    {
+      "name": "lifesight-mia",
+      "source": "./",
+      "description": "Lifesight marketing measurement in Claude: the MIA MCP server and the workflow skills."
+    }
+  ]
+}

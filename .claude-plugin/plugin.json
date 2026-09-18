@@ -1,0 +1,9 @@
+{
+  "name": "lifesight-mia",
+  "description": "Lifesight marketing measurement in Claude: MMM, causal attribution, geo experiments, budget optimisation, data health and spend anomalies over the Lifesight MIA MCP server, with the workflows members run most as skills.",
+  "version": "0.1.0",
+  "author": {"name": "Lifesight"},
+  "homepage": "https://www.lifesight.io",
+  "repository": "https://github.com/lifesight/ask-lifesight-plugin",
+  "license": "Apache-2.0"
+}
