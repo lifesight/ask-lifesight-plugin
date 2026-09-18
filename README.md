@@ -2,7 +2,7 @@
 
 Lifesight's marketing measurement inside Claude: marketing mix models (MMM), causal attribution,
 geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies,
-creative performance, the member's cue cards and the product docs, over the Lifesight MIA MCP
+creative performance, the member's cue cards and the product docs, over the Ask Lifesight MCP
 server, plus the workflows members run most as skills.
 
 Every figure comes from the Lifesight platform, with its unit, currency, model and window
