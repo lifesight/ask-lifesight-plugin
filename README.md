@@ -89,7 +89,7 @@ Claude refuses to do (invent a budget, average two measurements, call a one-week
 Every call runs as you, in a workspace you hold, and lands on your own conversation thread in
 Lifesight with the same audit trail as the product. The server never forwards your token to the
 platform; it uses its own short-lived credential for your identity. Lifesight's privacy policy:
-https://www.lifesight.io/privacy.
+https://lifesight.io/privacy-policy/.
 
 ## Changelog
 
