@@ -28,6 +28,17 @@ For headless use (CI, the Agent SDK), mint a personal access token in the consol
 MCP) and send it as `Authorization: Bearer pat_...`; tokens last 90 days and are revoked from
 the same page.
 
+## Try it
+
+Three prompts that use the connector end to end, each answered from your own workspace's data
+with the platform read it came from named beside every figure:
+
+| Ask | What happens |
+|---|---|
+| "Which channels are saturating and where is the headroom?" | `get_workspace_context`, then `get_channel_saturation` on the champion model: marginal ROI, saturation level and headroom per channel |
+| "Optimise my Q4 budget at 5M and compare it with what is promoted" | `start_budget_optimisation` (inline or a handle you read back), then `compare_budget_scenarios` against the promoted plan |
+| "Are my geo experiments agreeing with the model for paid social?" | `compare_channel_measurements`: the model's return, the causal read's, the ad platform's own and the last lift test's, side by side |
+
 ## What it can do
 
 Start every session with `get_workspace_context`: the workspaces you hold and the active one,
@@ -83,7 +94,16 @@ Claude refuses to do (invent a budget, average two measurements, call a one-week
   `concise`). The product shows all of it.
 - `check_figures` checks up to 300 figures against the last 20 successful results of the
   connection's thread.
-- Requests are rate-limited per member and per workspace by the Lifesight gateway.
+- Rate limits, enforced by the Lifesight gateway (token buckets; a request over the limit is
+  `429` and Claude retries after a moment):
+  - tool calls: 10 per second, bursts of 20, per member in a workspace (each connection has its
+    own bucket, separate from the product's);
+  - before a call is authenticated: 5 per second, bursts of 20, per source address;
+  - the sign-in and token endpoints (connect, refresh): 5 per second, bursts of 10, per source
+    address.
+- One MCP token lives 1 hour and refreshes itself for up to 30 days; a personal access token
+  lives 90 days. Disconnecting a client in Lifesight (Settings, Claude & MCP) takes effect
+  within a minute.
 
 ## Privacy
 
