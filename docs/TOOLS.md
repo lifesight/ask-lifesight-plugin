@@ -8,7 +8,7 @@ Generated from the server's published surface; do not edit by hand. Every result
 
 Scope `mia.read`. read-only, idempotent, open-world.
 
-Call this first. The workspaces this member holds and the one this connection is on; for the active workspace: the champion MMM models with their KPI, currency and data window, how many challengers exist, the champion's channels, the promoted plan, and today's date. Figure-free: it orients, it does not report. active_workspace.source says how the workspace was chosen: argument (this call), record (a switch), default (the sign-in's workspace).
+The starting point for a connection: the workspaces this member holds and the one this connection is on; for the active workspace: the champion MMM models with their KPI, currency and data window, how many challengers exist, the champion's channels, the promoted plan, and today's date. Figure-free: it orients, it does not report. active_workspace.source says how the workspace was chosen: argument (this call), record (a switch), default (the sign-in's workspace).
 
 Parameters:
 
@@ -143,7 +143,7 @@ Parameters:
 
 Scope `mia.read`. open-world.
 
-Run the model's optimiser (a solve takes seconds to minutes); answers within about 20 seconds with the result when the solve is quick, else with a handle: mode maximise splits a budget across channels for the best outcome (total_budget as text: a figure "500000" or an expression on today's spend "current +10%"; blank reallocates what is spent today), mode target_kpi finds the smallest budget that reaches target_kpi_value. constraint_type bounds each channel as a multiple of its historical spend: Current, Conservative, Moderate (the default), Aggressive, or Custom with channel_overrides. time_period is the plan horizon (default a quarter); dates are derived from it, never passed. sections for maximise: allocation (always), forecast, pacing, worksheet, one solve for all. A short solve returns the result inline; otherwise read it with get_budget_optimisation(handle). Each call creates a scratch scenario on the platform (not a saved plan). Never invent a budget or a constraint the member did not state; a needs_input warning lists what to ask them.
+Run the model's optimiser (a solve takes seconds to minutes); answers within about 20 seconds with the result when the solve is quick, else with a handle: mode maximise splits a budget across channels for the best outcome (total_budget as text: a figure "500000" or an expression on today's spend "current +10%"; blank reallocates what is spent today), mode target_kpi finds the smallest budget that reaches target_kpi_value. constraint_type bounds each channel as a multiple of its historical spend: Current, Conservative, Moderate (the default), Aggressive, or Custom with channel_overrides. time_period is the plan horizon (default a quarter); dates are derived from it, never passed. sections for maximise: allocation (always), forecast, pacing, worksheet, one solve for all. A short solve returns the result inline; otherwise read it with get_budget_optimisation(handle). Each call creates a scratch scenario on the platform (not a saved plan). The budget and the constraints are the member's stated values; a needs_input warning names any that is missing.
 
 Parameters:
 
@@ -162,7 +162,7 @@ Parameters:
 
 Scope `mia.read`. open-world.
 
-Optimise up to six budget scenarios on one MMM model and one baseline and compare them side by side: each scenario's outcome, its ROAS (or CPA on a count model) and per-channel allocation with the platform's own deltas against current spend. Each scenario is {label, total_budget, constraint_type, description}; total_budget is an amount the member stated or an expression on the current budget ("current", "current -10%", "+20%"); never invent a budget. constraint_type: Current, Conservative, Moderate, Aggressive or Custom (default Conservative). model_id and time_period may be left out: with one champion the tool plans on it and a quarter and reports the defaults; with several it returns the question to put to the member (nothing ran). This is a SOLVE: it creates scratch scenarios on the platform and takes tens of seconds; it changes no budget. A scenario whose bounds cannot place its budget is refused with why. Example: scenarios=[{"label":"Hold","total_budget":"current"},{"label":"Cut","total_budget":"current -10%"}]. For today's split alone use get_current_budget_allocation.
+Optimise up to six budget scenarios on one MMM model and one baseline and compare them side by side: each scenario's outcome, its ROAS (or CPA on a count model) and per-channel allocation with the platform's own deltas against current spend. Each scenario is {label, total_budget, constraint_type, description}; total_budget is an amount the member stated or an expression on the current budget ("current", "current -10%", "+20%"), always one the member stated. constraint_type: Current, Conservative, Moderate, Aggressive or Custom (default Conservative). model_id and time_period may be left out: with one champion the tool plans on it and a quarter and reports the defaults; with several it returns the question to put to the member (nothing ran). This is a SOLVE: it creates scratch scenarios on the platform and takes tens of seconds; it changes no budget. A scenario whose bounds cannot place its budget is refused with why. Example: scenarios=[{"label":"Hold","total_budget":"current"},{"label":"Cut","total_budget":"current -10%"}]. For today's split alone use get_current_budget_allocation.
 
 Parameters:
 
@@ -186,16 +186,16 @@ Parameters:
 
 ### `save_budget_plan`: Save a budget plan
 
-Scope `mia.write`. open-world.
+Scope `mia.write`. destructive, open-world.
 
-Optimise a budget with the model and save the result as a named plan in Lifesight, visible to the member's colleagues in the console (a write; needs the mia.write scope). Give the model, the name and the total budget the member stated; constraint_type and time_period as start_budget_optimisation. Answers within about 20 seconds when the solve is quick, else with a handle to read with get_budget_optimisation. Saving does NOT make the plan the workspace's default plan; that is request_plan_promotion, which the member approves in the product. Never invent a name, a budget or a constraint; a needs_input warning lists what to ask. Example: model_id="<id>", plan_name="Q4 moderate", total_budget=500000.
+Optimise a budget with the model and save the result as a named plan in Lifesight, visible to the member's colleagues in the console (a write; needs the mia.write scope). Give the model, the name and the total budget the member stated; constraint_type and time_period as start_budget_optimisation. Answers within about 20 seconds when the solve is quick, else with a handle to read with get_budget_optimisation. Saving does NOT make the plan the workspace's default plan; that is request_plan_promotion, which the member approves in the product. The name, the budget and the constraints are the member's stated values; a needs_input warning names any that is missing. Example: model_id="<id>", plan_name="Q4 moderate", total_budget=500000.
 
 Parameters:
 
 - `channel_overrides`, array: Custom only: per-channel bounds the member named.
 - `constraint_type`, string: How far each channel may move from its historical spend; blank = Moderate, reported in defaults. One of: Current, Conservative, Moderate, Aggressive, Custom.
 - `model_id` (required), string: The MMM model id from list_mmm_models.
-- `plan_name` (required), string: The name the plan is saved under, visible to colleagues in the console; as the member stated it, never invented.
+- `plan_name` (required), string: The name the plan is saved under, visible to colleagues in the console; as the member stated it.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
 - `time_period`, string: The plan horizon; blank = a quarter, reported in defaults. One of: month, two months, quarter, six months, nine months, twelve months.
 - `total_budget` (required), number: The budget to plan, in the model's currency, as the member stated it.
@@ -205,13 +205,13 @@ Parameters:
 
 Scope `mia.decide`. destructive, open-world, needs the member's decision in the product.
 
-Ask the member to make an optimised plan the workspace's default plan in Lifesight (needs the mia.decide scope). Promotion sets the default scenario the team plans against; it is NOT a financial transaction: no money moves, no payment runs, no ad-platform spend changes. This tool never performs the promotion: it optimises the budget with the model and PAUSES for a human decision; on approval the plan is saved under plan_name and promoted (so mia.decide covers that save); on rejection nothing is saved. The member approves or rejects it in the Lifesight product, never here. It returns approval_id, the summary and expires_at (or a handle when the solve is slow: read it with get_approval_status). Then read the decision with get_approval_status. Never invent a name, a budget or a constraint; never tell the member the plan was promoted until get_approval_status says approved. Example: model_id="<id>", plan_name="Q4 plan", total_budget=500000.
+Ask the member to make an optimised plan the workspace's default plan in Lifesight (needs the mia.decide scope). Promotion sets the default scenario the team plans against; it is NOT a financial transaction: no money moves, no payment runs, no ad-platform spend changes. This tool never performs the promotion: it optimises the budget with the model and PAUSES for a human decision; on approval the plan is saved under plan_name and promoted (so mia.decide covers that save); on rejection nothing is saved. The member approves or rejects it in the Lifesight product, never here. It returns approval_id, the summary and expires_at (or a handle when the solve is slow: read it with get_approval_status). Then read the decision with get_approval_status. The name, the budget and the constraints are the member's stated values; the plan counts as promoted only once get_approval_status reports approved. Example: model_id="<id>", plan_name="Q4 plan", total_budget=500000.
 
 Parameters:
 
 - `constraint_type`, string: How far each channel may move from its historical spend; blank = Moderate, reported in defaults. One of: Current, Conservative, Moderate, Aggressive, Custom.
 - `model_id` (required), string: The MMM model id from list_mmm_models.
-- `plan_name` (required), string: The name the plan is saved under, visible to colleagues in the console; as the member stated it, never invented.
+- `plan_name` (required), string: The name the plan is saved under, visible to colleagues in the console; as the member stated it.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
 - `time_period`, string: The plan horizon; blank = a quarter, reported in defaults. One of: month, two months, quarter, six months, nine months, twelve months.
 - `total_budget` (required), number: The budget to plan, in the model's currency, as the member stated it.
@@ -236,7 +236,7 @@ Parameters:
 
 Scope `mia.read`. read-only, idempotent, open-world.
 
-The workspace's marketing mix models: the champions (signed off, the ones to report and plan on), newest first, with model id, display name, outcome KPI, currency and data window. Use it to pick the model_id every other MMM tool takes, or when the member asks which models exist. Challengers (models under review) are counted but not listed unless include_challengers is true; do not plan on one. outcome_kpi filters by the model's KPI, matched exactly and case-insensitively (revenue, conversions, installs). Example: outcome_kpi="revenue". A workspace with several champions for one KPI has no tie-break rule: show them and let the member choose. data.sections_available lists what get_mmm_report can read for a model.
+The workspace's marketing mix models: the champions (signed off, the ones to report and plan on), newest first, with model id, display name, outcome KPI, currency and data window. Use it to pick the model_id every other MMM tool takes, or when the member asks which models exist. Challengers (models under review) are counted but not listed unless include_challengers is true; a challenger is not planned on. outcome_kpi filters by the model's KPI, matched exactly and case-insensitively (revenue, conversions, installs). Example: outcome_kpi="revenue". A workspace with several champions for one KPI has no tie-break rule: show them and let the member choose. data.sections_available lists what get_mmm_report can read for a model.
 
 Parameters:
 
@@ -294,7 +294,7 @@ Parameters:
 - `min_spend`, number: For creatives: ignore ads below this spend so tiny-sample winners do not top the list.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
 - `start_date` (required), string: Window start, YYYY-MM-DD. Required.
-- `target_budget`, number: For budget_allocation: the budget to split, as the member stated it. Never invent one.
+- `target_budget`, number: For budget_allocation: the budget to split, as the member stated it.
 - `target_roas`, number: For saturation: the return a channel must still earn to count as unsaturated.
 - `top_n`, integer: For creatives: how many ads to rank.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
@@ -368,7 +368,7 @@ Parameters:
 
 Scope `mia.read`. read-only, idempotent, open-world.
 
-Search the Lifesight product documentation: what a term or methodology means (adstock, saturation, MMM calibration, geo lift), how a feature works, how to do something in the product. The same answer for every customer; it never reads the member's data. Returns the matching chunks as text, each headed by its document title and section, best first; answer from them and cite the section. mode semantic (default) fuses meaning and keyword hits and re-ranks, up to 15 chunks; keyword is the exact-term fallback ("MROAS", "MROAS OR adstock"), up to 10, for when semantic found nothing or the query is an identifier. section narrows to one documentation section; list_sections=true returns the section names instead of searching. Concise returns the first three chunks when many matched; detailed returns every chunk. Example: query="what is adstock decay", or query="MROAS", mode="keyword". For the member's own figures use the model, attribution and planning tools, never the docs.
+Search the Lifesight product documentation: what a term or methodology means (adstock, saturation, MMM calibration, geo lift), how a feature works, how to do something in the product. The same answer for every customer; it never reads the member's data. Returns the matching chunks as text, each headed by its document title and section, best first; answer from them and cite the section. mode semantic (default) fuses meaning and keyword hits and re-ranks, up to 15 chunks; keyword is the exact-term fallback ("MROAS", "MROAS OR adstock"), up to 10, for when semantic found nothing or the query is an identifier. section narrows to one documentation section; list_sections=true returns the section names instead of searching. Concise returns the first three chunks when many matched; detailed returns every chunk. Example: query="what is adstock decay", or query="MROAS", mode="keyword". For the member's own figures are not here: they come from the model, attribution and planning tools.
 
 Parameters:
 
@@ -384,9 +384,9 @@ Parameters:
 
 ### `raise_support_ticket`: Raise a support ticket
 
-Scope `mia.write`. open-world.
+Scope `mia.write`. destructive, open-world.
 
-Raise a ticket with Lifesight support in the member's name, or check one raised before (needs the mia.write scope). Use it when the member asks for support or a human, disputes figures, hits an error that a retry will not fix, or finds data missing or wrong. To raise one give summary (one line, the ticket's title), description (the member's own words, never paraphrased away) and category: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation or feature_request; priority low, medium (default), high or critical. To check one give ticket_key only (the key returned when it was raised, never invented). Returns the key and its link, or the ticket's state, assignee and last update. A ticket is visible to Lifesight staff: raise one only when the member asked.
+Raise a ticket with Lifesight support in the member's name, or check one raised before (needs the mia.write scope). Use it when the member asks for support or a human, disputes figures, hits an error that a retry will not fix, or finds data missing or wrong. To raise one give summary (one line, the ticket's title), description (the member's own words) and category: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation or feature_request; priority low, medium (default), high or critical. To check one give ticket_key only (the key returned when it was raised). Returns the key and its link, or the ticket's state, assignee and last update. A ticket is visible to Lifesight staff and is raised at the member's request.
 
 Parameters:
 
@@ -418,9 +418,9 @@ What a client reads before the first call:
 
 ```
 Lifesight marketing measurement for this member's workspaces: marketing mix models (MMM), causal attribution, geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies, creative performance, the member's cue cards, and the product docs.
-Start with get_workspace_context: the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date.
-Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, so quote them rather than recomputing; check_figures tells you which figures in a draft the thread's results ground before you show them. A needs_input warning lists the questions to put to the member.
+get_workspace_context gives the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date.
+Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, which the payload carries; check_figures reports which figures in a draft the thread's results ground before you show them. A needs_input warning lists the questions to put to the member.
 switch_workspace changes the active workspace for this connection; every tool also takes workspace_id for one call.
 Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_mia_investigation runs Lifesight's own investigator, Mia, on a thread (a compound investigation asked for by name, or to continue a product thread) and get_mia_investigation reads it; poll every poll_after_s seconds. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_data answers in words over the ad platforms' own figures. The prompts are the workflows members run most.
-save_budget_plan (mia.write) saves a plan by name; request_plan_promotion (mia.decide) never promotes: the member approves in the product and get_approval_status reads the decision; promotion moves no money. A scope the connection does not hold is refused; say so and point to the product.
+save_budget_plan (mia.write) saves a plan by name; request_plan_promotion (mia.decide) never promotes: the member approves in the product and get_approval_status reads the decision; promotion moves no money. A scope the connection does not hold is refused with a sentence naming where the member enables it.
 ```
