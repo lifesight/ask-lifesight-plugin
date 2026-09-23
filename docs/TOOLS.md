@@ -2,7 +2,7 @@
 
 Generated from the server's published surface; do not edit by hand. Every result is a `structuredContent` object with `summary`, `workspace`, `data`, `provenance`, `links`, `next` and `warnings` (see the README).
 
-## mia
+## ask_lifesight
 
 ### `get_workspace_context`: Workspace context
 
@@ -28,7 +28,7 @@ Parameters:
 
 Scope `mia.read`. idempotent.
 
-Record the member's verdict on a Mia answer (ask_mia or get_mia_investigation): thumbs up or down with an optional note, against the thread and turn ids the answer carried. Feeds Lifesight's evaluation set.
+Record the member's verdict on an Ask Lifesight answer (ask_lifesight or get_investigation): thumbs up or down with an optional note, against the thread and turn ids the answer carried. Feeds Lifesight's evaluation set.
 
 Parameters:
 
@@ -64,11 +64,11 @@ Parameters:
 - `thread_id`, string: A thread of yours to check against; the connection's thread in the workspace otherwise.
 - `workspace_id`, string: The workspace whose thread to check against; the active one otherwise.
 
-### `start_mia_investigation`: Start a Mia investigation
+### `start_investigation`: Start an Ask Lifesight investigation
 
 Scope `mia.read`. open-world.
 
-Start Lifesight's own investigator, Mia, on a thread in the active workspace and return at once: for a compound investigation the member asks for by name (several parts, figures to reconcile, a report with charts), or to continue a thread from the product (thread_id). She reads the platform, reconciles figures and drafts the answer; it takes minutes. Read it with get_mia_investigation(thread_id, turn_id). For a single figure, table or curve use the typed tools instead. One question at a time per thread.
+Start Ask Lifesight, Lifesight's own investigator, on a thread in the active workspace and return at once: for a compound investigation the member asks for by name (several parts, figures to reconcile, a report with charts), or to continue a thread from the product (thread_id). It reads the platform, reconciles figures and drafts the answer; it takes minutes. Read it with get_investigation(thread_id, turn_id). For a single figure, table or curve use the typed tools instead. One question at a time per thread.
 
 Parameters:
 
@@ -76,27 +76,27 @@ Parameters:
 - `thread_id`, string: Continue this thread of the member's; the connection's thread otherwise.
 - `workspace_id`, string: Run in this workspace for this call only.
 
-### `get_mia_investigation`: Read a Mia investigation
+### `get_investigation`: Read an Ask Lifesight investigation
 
 Scope `mia.read`. read-only, idempotent.
 
-Read a Mia thread: with a turn_id, that turn (running with its progress, or completed with the answer, the charts and any pending approval); without one, the thread's latest completed answer. The answer is in summary; the artifacts ride along as resources.
+Read an Ask Lifesight thread: with a turn_id, that turn (running with its progress, or completed with the answer, the charts and any pending approval); without one, the thread's latest completed answer. The answer is in summary; the artifacts ride along as resources.
 
 Parameters:
 
-- `thread_id` (required), string: The thread start_mia_investigation returned.
+- `thread_id` (required), string: The thread start_investigation returned.
 - `turn_id`, string: The turn to read; the latest completed one otherwise.
 - `workspace_id`, string: The workspace of the thread; the active one otherwise.
 
-### `ask_mia`: Ask Mia (investigation thread)
+### `ask_lifesight`: Ask Lifesight (investigation thread)
 
 Scope `mia.read`. open-world.
 
-Run Lifesight's own investigator, Mia, on a thread in the active workspace: for a compound investigation the member asks for by name, or to continue a thread from the product. She reads the platform, reconciles figures and drafts a report with charts. Slow: minutes. If the answer is not ready within one call the result says status=running; ask again with the same thread_id to read it. For a single figure or table, use the typed tools instead.
+Run Ask Lifesight, Lifesight's own investigator, on a thread in the active workspace: for a compound investigation the member asks for by name, or to continue a thread from the product. It reads the platform, reconciles figures and drafts a report with charts. Slow: minutes. If the answer is not ready within one call the result says status=running; ask again with the same thread_id to read it. For a single figure or table, use the typed tools instead.
 
 Parameters:
 
-- `question`, string: What to ask Mia (not needed with read_latest).
+- `question`, string: What to ask (not needed with read_latest).
 - `read_latest`, boolean: Do not ask anything: return the thread's latest completed answer (how to read a turn that was still running).
 - `thread_id`, : Continue a thread of yours (also how to read a turn that was still running); the connection's thread in the active workspace otherwise.
 - `workspace_id`, : Run in this workspace for this call only.
@@ -176,7 +176,7 @@ Parameters:
 
 Scope `mia.read`. read-only, idempotent, open-world.
 
-The budget plans saved in the workspace, as the console shows them. Without plan_id it lists them: plan id, name, status, model, scenario count, the promoted scenario and when it was saved. With plan_id it reads that plan: one entry per scenario with its state, plan window, the optimised allocation per channel with the platform's totals and deltas, the outcome forecast (monthly rollup) and the weekly pacing schedule. Use it when the member asks what plans exist, what a saved plan proposes, or which scenario is promoted; MIA's own scratch plans are not listed. Figures are the platform's, over the scenario's plan window, in the model's currency; ROAS is a multiplier, CPA an amount per unit. Example: no arguments to list, then plan_id="<id>". For today's split use get_current_budget_allocation.
+The budget plans saved in the workspace, as the console shows them. Without plan_id it lists them: plan id, name, status, model, scenario count, the promoted scenario and when it was saved. With plan_id it reads that plan: one entry per scenario with its state, plan window, the optimised allocation per channel with the platform's totals and deltas, the outcome forecast (monthly rollup) and the weekly pacing schedule. Use it when the member asks what plans exist, what a saved plan proposes, or which scenario is promoted; Ask Lifesight's own scratch plans are not listed. Figures are the platform's, over the scenario's plan window, in the model's currency; ROAS is a multiplier, CPA an amount per unit. Example: no arguments to list, then plan_id="<id>". For today's split use get_current_budget_allocation.
 
 Parameters:
 
@@ -205,7 +205,7 @@ Parameters:
 
 Scope `mia.decide`. destructive, open-world, needs the member's decision in the product.
 
-Ask the member to make an optimised plan the workspace's default plan in Lifesight (needs the mia.decide scope). Promotion sets the default scenario the team plans against; it is NOT a financial transaction: no money moves, no payment runs, no ad-platform spend changes. This tool never performs the promotion: it optimises the budget with the model and PAUSES for a human decision; on approval the plan is saved under plan_name and promoted (so mia.decide covers that save); on rejection nothing is saved. The member approves or rejects it in the Lifesight product, never here. It returns approval_id, the summary and expires_at (or a handle when the solve is slow: read it with get_approval_status). Then read the decision with get_approval_status. The name, the budget and the constraints are the member's stated values; the plan counts as promoted only once get_approval_status reports approved. Example: model_id="<id>", plan_name="Q4 plan", total_budget=500000.
+Raises a request for an optimised plan to become the workspace's default plan in Lifesight, for the member to approve there (needs the mia.decide scope). Promotion sets the default scenario the team plans against; it is NOT a financial transaction: no money moves, no payment runs, no ad-platform spend changes. This tool never performs the promotion: it optimises the budget with the model and PAUSES for a human decision; on approval the plan is saved under plan_name and promoted (so mia.decide covers that save); on rejection nothing is saved. The member approves or rejects it in the Lifesight product, never here. It returns approval_id, the summary and expires_at (or a handle when the solve is slow: read it with get_approval_status). Then read the decision with get_approval_status. The name, the budget and the constraints are the member's stated values; the plan counts as promoted only once get_approval_status reports approved. Example: model_id="<id>", plan_name="Q4 plan", total_budget=500000.
 
 Parameters:
 
@@ -395,7 +395,7 @@ Parameters:
 - `priority`, string: How urgent. One of: low, medium, high, critical.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
 - `summary`, string: One line, the ticket's title (to raise).
-- `ticket_key`, string: A ticket raised before (its key, e.g. MIA-123), to check its state; leave out to raise one.
+- `ticket_key`, string: A ticket raised before (its key, e.g. ABC-123), to check its state; leave out to raise one.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
 ## cue-cards
@@ -419,8 +419,8 @@ What a client reads before the first call:
 ```
 Lifesight marketing measurement for this member's workspaces: marketing mix models (MMM), causal attribution, geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies, creative performance, the member's cue cards, and the product docs.
 get_workspace_context gives the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date.
-Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, which the payload carries; check_figures reports which figures in a draft the thread's results ground before you show them. A needs_input warning lists the questions to put to the member.
+Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, which the payload carries; check_figures reports which figures in a draft the thread's results ground. A needs_input warning carries the questions the member has still to answer.
 switch_workspace changes the active workspace for this connection; every tool also takes workspace_id for one call.
-Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_mia_investigation runs Lifesight's own investigator, Mia, on a thread (a compound investigation asked for by name, or to continue a product thread) and get_mia_investigation reads it; poll every poll_after_s seconds. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_data answers in words over the ad platforms' own figures. The prompts are the workflows members run most.
+Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_investigation runs Ask Lifesight, Lifesight's own investigator, on a thread (a compound investigation asked for by name, or to continue a product thread) and get_investigation reads it, each answer carrying poll_after_s, the seconds until the next read is due. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_data answers in words over the ad platforms' own figures. The prompts are the workflows members run most.
 save_budget_plan (mia.write) saves a plan by name; request_plan_promotion (mia.decide) never promotes: the member approves in the product and get_approval_status reads the decision; promotion moves no money. A scope the connection does not hold is refused with a sentence naming where the member enables it.
 ```
