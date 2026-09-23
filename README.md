@@ -101,9 +101,11 @@ Claude refuses to do (invent a budget, average two measurements, call a one-week
   - before a call is authenticated: 5 per second, bursts of 20, per source address;
   - the sign-in and token endpoints (connect, refresh): 5 per second, bursts of 10, per source
     address.
-- One MCP token lives 1 hour and refreshes itself for up to 30 days; a personal access token
-  lives 90 days. Disconnecting a client in Lifesight (Settings, Claude & MCP) takes effect
-  within a minute.
+- A connection stays signed in while you use it: its token lives 1 hour and refreshes itself,
+  and the connection lapses only after 30 days without use (then Claude asks you to sign in
+  again). It keeps the workspace you switched to and its conversation threads for the same
+  time. A personal access token lives 90 days. Disconnecting a client in Lifesight (Settings,
+  Claude & MCP) takes effect within a minute.
 
 ## Privacy
 
