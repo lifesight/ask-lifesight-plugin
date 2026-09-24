@@ -60,7 +60,7 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | What the ad platforms report, in words | `query_ads_data` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
 | Raise a ticket with Lifesight support, or check one (scope `mia.write`) | `raise_support_ticket` |
-| A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_mia_investigation`, `get_mia_investigation` |
+| A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_investigation`, `get_investigation` |
 
 The full reference, generated from the server's published surface: [docs/TOOLS.md](docs/TOOLS.md).
 
@@ -71,6 +71,20 @@ readout, budget reallocation, scenario planning, model health check, saturation 
 attribution reconciliation, experiment readout, experiment roadmap, anomaly triage, board
 briefing, P&L translation, data health. Each names the tools in order, the output shape and what
 Claude refuses to do (invent a budget, average two measurements, call a one-week change a trend).
+
+## House style
+
+The plugin loads a short house style into every Claude Code session
+([guidance/house-style.md](guidance/house-style.md), through a `SessionStart` hook): draw a chart
+wherever a result has a shape, ask the tools for `detailed` results so there is something to draw,
+and the chart each kind of question gets (saturation questions always get the response curve with
+its inflection point, operating point and cap marked). Charts plot only what the results carry,
+labelled with the values as returned. It applies only to answers that use Ask Lifesight, and your
+own instructions win over it.
+
+On claude.ai and Claude Desktop the plugin's hook does not run. Paste the same file into a
+Project's instructions or your profile preferences, or have your admin provision the skills for
+the organisation.
 
 ## What a write does, and does not do
 
@@ -116,5 +130,7 @@ https://lifesight.io/privacy-policy/.
 
 ## Changelog
 
+- 0.2.0 (unreleased): the house style, loaded at session start; the saturation skill draws the
+  response curve from `detailed` results; the investigation tools under their current names.
 - 0.1.0 (2026-09-18): first release for the parallel window: 28 tools, 12 skills and prompts,
   OAuth through the console login, personal access tokens.

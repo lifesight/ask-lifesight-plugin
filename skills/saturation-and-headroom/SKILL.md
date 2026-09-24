@@ -9,14 +9,15 @@ description: How far a channel can scale before returns fall, from its own respo
 
 ## How
 1. `get_workspace_context` for the champion model and the channel's spelling (pass a channel by the names the context lists).
-2. `get_channel_saturation_curves` for the channel on that model; pass `target_roas` only if the member named one. The curve is read off the model in the period's spend: no budget, no solve. A cap of N/A comes with a note: relay the note (the return stays above the target up to the last spend on the curve).
+2. `get_channel_saturation_curves` for the channel on that model with `response_format` `detailed` (concise carries no curve points); pass `target_roas` only if the member named one. One call per channel the member asked about. The curve is read off the model in the period's spend: no budget, no solve. A cap of N/A comes with a note: relay the note (the return stays above the target up to the last spend on the curve).
 3. `get_mmm_report` with `sections` `marginal_roas` for the same model, to place the channel among the others.
 
 ## Output
-The channel's current spend, its marginal ROI at that point, the headroom and the saturation level exactly as the curve result gives them; where it stands against the other channels' marginal ROAS; the one sentence of advice the figures support.
+First, the saturation curve: spend against outcome drawn from `curve_points`, with the operating point, the model's optimised point, the inflection point and the saturation cap marked where the result carries them, each labelled with its value as returned. Shade the stretch past the inflection (diminishing returns, not saturation) and anything past `sampled_to` (outside the data). Several channels: one panel each. Caption: the model, the curve period, the currency. If the result carries no points, say so and show the marked points as a table.
+Then the channel's current spend, its marginal ROI at that point, the headroom and the saturation level exactly as the curve result gives them; where it stands against the other channels' marginal ROAS (a ranked bar); the one sentence of advice the figures support.
 
 ## Refuse
-Reading a point off the curve yourself: what a channel would get under a budget comes from `start_budget_optimisation`, not from the curve. Never turn headroom into a recommended spend figure the result did not carry.
+Reading a point off the curve yourself (drawing the returned points is fine; labelling a spot between them with a figure is not): what a channel would get under a budget comes from `start_budget_optimisation`, not from the curve. Never turn headroom into a recommended spend figure the result did not carry.
 
 ## Rules that hold for every step
 

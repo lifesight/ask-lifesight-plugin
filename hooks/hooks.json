@@ -1,0 +1,16 @@
+{
+  "description": "Loads the Ask Lifesight house style (charts, saturation curves, per-question visuals) into every Claude Code session.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cat \"${CLAUDE_PLUGIN_ROOT}/guidance/house-style.md\""
+          }
+        ]
+      }
+    ]
+  }
+}
