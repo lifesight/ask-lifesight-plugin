@@ -88,19 +88,6 @@ Parameters:
 - `turn_id`, string: The turn to read; the latest completed one otherwise.
 - `workspace_id`, string: The workspace of the thread; the active one otherwise.
 
-### `ask_lifesight`: Ask Lifesight (investigation thread)
-
-Scope `lifesight.read`. open-world.
-
-Ask Lifesight, Lifesight's own investigator, run on a thread in the active workspace within one call: it reads the platform, reconciles figures and drafts a report with charts, over minutes; when the answer is not ready the result says status=running and the same thread_id reads it. Use this when a host cannot poll and the member asks by name for a full investigation. Not for a single figure or table (that is the typed tools) or a host that can poll (start_investigation and get_investigation). Example: question="Explain our marketing performance to the CFO.".
-
-Parameters:
-
-- `question`, string: What to ask (not needed with read_latest).
-- `read_latest`, boolean: Do not ask anything: return the thread's latest completed answer (how to read a turn that was still running).
-- `thread_id`, : Continue a thread of yours (also how to read a turn that was still running); the connection's thread in the active workspace otherwise.
-- `workspace_id`, : Run in this workspace for this call only.
-
 ## budget-planning
 
 ### `get_budget_optimisation`: Read a budget optimisation
