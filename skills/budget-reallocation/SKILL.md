@@ -17,7 +17,7 @@ description: Reallocate a stated budget across channels with the MMM optimiser a
 "What if I increase Google by 20%" is an ordinary optimisation with one channel pinned: `constraint_type` `Custom` and `channel_overrides` with `min_spend` and `max_spend` both at the target figure. Take the channel's current spend from `get_current_budget_allocation` and pass the figure the member wants; never do the percentage yourself. A floor with no ceiling is not a pin.
 
 ## Output
-A table of channels with current spend, optimised spend and the delta as the result gives them; the forecast outcome; two sentences on why the top moves make sense from the curves. Say what was held and what moved. The scratch scenario is not a saved plan: offer `save_budget_plan` under a name the member gives (needs the `mia.write` scope).
+A table of channels with current spend, optimised spend and the delta as the result gives them; the forecast outcome; two sentences on why the top moves make sense from the curves. Say what was held and what moved. The scratch scenario is not a saved plan: offer `save_budget_plan` under a name the member gives (needs the `lifesight.write` scope).
 
 ## Refuse
 Inventing a budget, a horizon or a constraint the member did not state; promising an outcome the forecast section did not carry; a budget far from today's spend without saying first that the bands may not place it.

@@ -20,7 +20,7 @@ In Claude Code:
 
 The first call opens the Lifesight console login page in your browser; sign in as usual (SSO and
 MFA as in the product) and you come back connected, with every workspace you hold attached. No
-key to handle. In claude.ai and Claude Desktop, add the connector `https://mcp.lifesight.io/mcp`
+key to handle. In claude.ai and Claude Desktop, add the connector `https://ask.lifesight.io/mcp`
 from the directory; the skills below are Claude Code's, the workflows are also served as MCP
 prompts so every client gets them.
 
@@ -35,7 +35,7 @@ with the platform read it came from named beside every figure:
 
 | Ask | What happens |
 |---|---|
-| "Which channels are saturating and where is the headroom?" | `get_workspace_context`, then `get_channel_saturation` on the champion model: marginal ROI, saturation level and headroom per channel |
+| "Which channels are saturating and where is the headroom?" | `get_workspace_context`, then `get_channel_saturation_curves` on the champion model: marginal ROI, saturation level and headroom per channel |
 | "Optimise my Q4 budget at 5M and compare it with what is promoted" | `start_budget_optimisation` (inline or a handle you read back), then `compare_budget_scenarios` against the promoted plan |
 | "Are my geo experiments agreeing with the model for paid social?" | `compare_channel_measurements`: the model's return, the causal read's, the ad platform's own and the last lift test's, side by side |
 
@@ -54,12 +54,12 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | What a geo experiment found | `get_geo_experiments` |
 | How to split a budget, what a scenario would return | `start_budget_optimisation`, `get_budget_optimisation`, `compare_budget_scenarios` |
 | What plans exist and what the promoted one proposes | `get_saved_plans`, `get_current_budget_allocation` |
-| Save a plan by name (scope `mia.write`) | `save_budget_plan` |
-| Make a plan the workspace's default, with your approval in the product (scope `mia.decide`) | `request_plan_promotion`, `get_approval_status` |
+| Save a plan by name (scope `lifesight.write`) | `save_budget_plan` |
+| Make a plan the workspace's default, with your approval in the product (scope `lifesight.decide`) | `request_plan_promotion`, `get_approval_status` |
 | Is the data fresh, what looks odd in spend | `get_data_source_health`, `detect_spend_anomalies` |
 | What the ad platforms report, in words | `query_ads_data` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
-| Raise a ticket with Lifesight support, or check one (scope `mia.write`) | `raise_support_ticket` |
+| Raise a ticket with Lifesight support, or check one (scope `lifesight.write`) | `raise_support_ticket` |
 | A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_investigation`, `get_investigation` |
 
 The full reference, generated from the server's published surface: [docs/TOOLS.md](docs/TOOLS.md).
@@ -95,14 +95,14 @@ the organisation.
   connection"), and `get_approval_status` reads the decision. Promotion sets the workspace's
   default plan, the one the team plans against. It is not a financial transaction: no money
   moves, no payment runs, no ad-platform spend changes.
-- A connection holds `mia.read` unless a workspace admin grants `mia.write` or `mia.decide` to
+- A connection holds `lifesight.read` unless a workspace admin grants `lifesight.write` or `lifesight.decide` to
   it. A scope the connection does not hold is refused, and Claude says so.
 
 ## Limits
 
 - One optimisation at a time per connection; a solve answers inline within about 20 seconds,
   otherwise you get a handle to read (`get_budget_optimisation`). An investigation by Mia is
-  read the same way (`get_mia_investigation`).
+  read the same way (`get_investigation`).
 - A result is cut to fit the transport (about 40,000 characters of payload); the `warnings`
   say what was cut and how to narrow (a section, a window, a filter, `response_format`
   `concise`). The product shows all of it.
