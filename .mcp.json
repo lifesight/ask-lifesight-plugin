@@ -2,7 +2,7 @@
   "mcpServers": {
     "ask-lifesight": {
       "type": "http",
-      "url": "https://mcp.lifesight.io/mcp"
+      "url": "https://ask.lifesight.io/mcp"
     }
   }
 }

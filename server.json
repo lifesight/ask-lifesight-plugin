@@ -6,6 +6,6 @@
   "websiteUrl": "https://www.lifesight.io",
   "repository": {"url": "https://github.com/lifesight/ask-lifesight-plugin", "source": "github"},
   "remotes": [
-    {"type": "streamable-http", "url": "https://mcp.lifesight.io/mcp"}
+    {"type": "streamable-http", "url": "https://ask.lifesight.io/mcp"}
   ]
 }
