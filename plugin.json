@@ -1,0 +1,65 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ask-lifesight",
+  "version": "0.2.0",
+  "description": "Lifesight marketing measurement in your assistant: marketing mix models, causal attribution, geo experiments, budget optimisation, data health and spend anomalies, every figure from the Lifesight platform with its provenance, and the twelve workflows members run most as skills.",
+  "author": {
+    "name": "Lifesight",
+    "url": "https://lifesight.io"
+  },
+  "homepage": "https://lifesight.io",
+  "repository": "https://github.com/lifesight/ask-lifesight-plugin",
+  "license": "Apache-2.0",
+  "keywords": [
+    "marketing mix modeling",
+    "MMM",
+    "media mix modeling",
+    "incrementality",
+    "causal attribution",
+    "geo lift experiments",
+    "budget optimisation",
+    "budget optimization",
+    "budget reallocation",
+    "saturation",
+    "diminishing returns",
+    "ROAS",
+    "marginal ROI",
+    "marginal ROAS",
+    "attribution",
+    "marketing measurement",
+    "spend anomalies",
+    "data health"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Ask Lifesight",
+        "shortDescription": "MMM, incrementality, budgets",
+        "longDescription": "Ask Lifesight answers marketing measurement questions from your own Lifesight workspace: marketing mix modeling (MMM, media mix modeling), incrementality and causal attribution, geo lift experiments, budget optimisation (budget optimization) and saved plans, data-source health, spend anomalies, creative performance and the product documentation. Every figure comes from the Lifesight platform with its unit, currency, model and time window stated beside it; the server computes the compares, shares and totals, and nothing is estimated.\n\nWhat you can ask, in your own words:\n- What moved this week across channels, with the data caveats stated first (the weekly performance readout).\n- Where should next quarter's budget move to get more from the same spend (budget reallocation with the optimiser).\n- Compare three budget scenarios side by side on one model and one horizon (scenario planning).\n- Can the champion model be trusted for planning (the model health check).\n- Which channels are saturating and which still have headroom, from their response curves (saturation and headroom, marginal ROI, marginal ROAS).\n- Why the model, the causal read, the ad platform and the last lift test disagree on a channel (attribution reconciliation).\n- What a completed geo experiment found, and what it did not (the experiment readout), and which channels to test next (the experiment roadmap).\n- Sort this week's spend anomalies into data issues and real changes (anomaly triage).\n- Marketing effectiveness for a leadership audience, every statement backed by a read (the board briefing), and the plan in finance terms (the P&L translation).\n- Whether the numbers can be trusted this week: sources, freshness, gaps (data health).\n\nTerms it understands: MMM, media mix, incrementality, geo lift, saturation, diminishing returns, ROAS, marginal ROI, marginal ROAS, contribution, budget reallocation, attribution, holdout, lift test.\n\nWho it is for: marketers, analysts and finance partners whose company uses Lifesight. You sign in with your Lifesight login and the workspaces you hold are attached; a workspace admin decides in Lifesight which assistants may connect and what a connection may do there. It needs a Lifesight login that holds a workspace: without one, nothing can be read, the product documentation included.\n\nWrites and decisions: saving a budget plan by name and raising a support ticket need write access your admin grants. Asking for a plan to become the workspace default never makes it so: the member approves it in Lifesight, and promotion sets the workspace's default plan in Lifesight; no money moves and no ad-platform spend changes.\n\nLimitations: it reports what the platform has measured and never computes a business figure of its own; a question outside the workspace's data is answered with what is missing, not a guess; dates outside a model's data window return no data; it does not change ad-platform budgets, run campaigns or move money.",
+        "developerName": "Lifesight",
+        "category": "Productivity",
+        "capabilities": [
+          "Read marketing mix model reports: contributions, ROI, marginal ROAS, response curves",
+          "Compare a channel's four measurements: model, causal read, ad platform, lift test",
+          "Optimise a budget with the model and compare scenarios side by side",
+          "Read geo lift experiments and their results",
+          "Check data-source health and sort spend anomalies",
+          "Save a named budget plan and ask for it to become the workspace default, which the member approves in Lifesight",
+          "Search the Lifesight product documentation"
+        ],
+        "websiteURL": "https://lifesight.io",
+        "supportURL": "https://support.lifesight.io/en/",
+        "privacyPolicyURL": "https://lifesight.io/privacy-policy/",
+        "termsOfServiceURL": "https://lifesight.io/terms-of-service/",
+        "defaultPrompt": [
+          "Use Ask Lifesight for this week's performance readout, data caveats first.",
+          "Use Ask Lifesight to show where next quarter's budget should move.",
+          "Use Ask Lifesight to tell me which channels are saturating."
+        ],
+        "brandColor": "#1b3a5c",
+        "composerIcon": "./assets/icon.svg",
+        "logo": "./assets/logo.svg"
+      }
+    }
+  }
+}

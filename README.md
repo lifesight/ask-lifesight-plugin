@@ -1,4 +1,4 @@
-# Ask Lifesight for Claude
+# Ask Lifesight for Claude and ChatGPT
 
 Lifesight's marketing measurement inside Claude: marketing mix models (MMM), causal attribution,
 geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies,
@@ -8,6 +8,15 @@ server, plus the workflows members run most as skills.
 Every figure comes from the Lifesight platform, with its unit, currency, model and window
 stated beside it. The server computes the compares, shares and totals; the client quotes them.
 No figure is ever estimated.
+
+## ChatGPT
+
+The same package is a ChatGPT plugin: `plugin.json` (the open agent-plugins manifest with OpenAI's
+`extensions.com.openai.interface` block), `mcp.json` (the server at `https://ask.lifesight.io/mcp`), the
+twelve skills and the brand assets. `uv run --no-project --with jsonschema python -I scripts/build_openai_zip.py`
+checks every documented limit and writes `dist/ask-lifesight-chatgpt.zip` for the Plugins dashboard;
+`docs/CHATGPT_LISTING.md` records the listing fields, the search terms and what the owner supplies at
+submission.
 
 ## Install
 
