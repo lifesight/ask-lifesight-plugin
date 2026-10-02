@@ -35,7 +35,7 @@
       "interface": {
         "displayName": "Ask Lifesight",
         "shortDescription": "MMM, incrementality, budgets",
-        "longDescription": "Ask Lifesight answers marketing measurement questions from your own Lifesight workspace: marketing mix modeling (MMM, media mix modeling), incrementality and causal attribution, geo lift experiments, budget optimisation (budget optimization) and saved plans, data-source health, spend anomalies, creative performance and the product documentation. Every figure comes from the Lifesight platform with its unit, currency, model and time window stated beside it; the server computes the compares, shares and totals, and nothing is estimated.\n\nWhat you can ask, in your own words:\n- What moved this week across channels, with the data caveats stated first (the weekly performance readout).\n- Where should next quarter's budget move to get more from the same spend (budget reallocation with the optimiser).\n- Compare three budget scenarios side by side on one model and one horizon (scenario planning).\n- Can the champion model be trusted for planning (the model health check).\n- Which channels are saturating and which still have headroom, from their response curves (saturation and headroom, marginal ROI, marginal ROAS).\n- Why the model, the causal read, the ad platform and the last lift test disagree on a channel (attribution reconciliation).\n- What a completed geo experiment found, and what it did not (the experiment readout), and which channels to test next (the experiment roadmap).\n- Sort this week's spend anomalies into data issues and real changes (anomaly triage).\n- Marketing effectiveness for a leadership audience, every statement backed by a read (the board briefing), and the plan in finance terms (the P&L translation).\n- Whether the numbers can be trusted this week: sources, freshness, gaps (data health).\n\nTerms it understands: MMM, media mix, incrementality, geo lift, saturation, diminishing returns, ROAS, marginal ROI, marginal ROAS, contribution, budget reallocation, attribution, holdout, lift test.\n\nWho it is for: marketers, analysts and finance partners whose company uses Lifesight. You sign in with your Lifesight login and the workspaces you hold are attached; a workspace admin decides in Lifesight which assistants may connect and what a connection may do there. It needs a Lifesight login that holds a workspace: without one, nothing can be read, the product documentation included.\n\nWrites and decisions: saving a budget plan by name and raising a support ticket need write access your admin grants. Asking for a plan to become the workspace default never makes it so: the member approves it in Lifesight, and promotion sets the workspace's default plan in Lifesight; no money moves and no ad-platform spend changes.\n\nLimitations: it reports what the platform has measured and never computes a business figure of its own; a question outside the workspace's data is answered with what is missing, not a guess; dates outside a model's data window return no data; it does not change ad-platform budgets, run campaigns or move money.",
+        "longDescription": "Ask Lifesight answers marketing measurement questions from your own Lifesight workspace: marketing mix modeling (MMM, media mix modeling), incrementality and causal attribution, geo lift experiments, budget optimisation (budget optimization) and saved plans, data-source health, spend anomalies, creative performance and the product documentation. Every figure comes from the Lifesight platform with its unit, currency, model and time window stated beside it; the server computes the compares, shares and totals, and nothing is estimated.\n\nWhat you can ask, in your own words:\n- What moved this week across channels, with the data caveats stated first (the weekly performance readout).\n- Where should next quarter's budget move to get more from the same spend (budget reallocation with the optimiser).\n- Compare three budget scenarios side by side on one model and one horizon (scenario planning).\n- Can the champion model be trusted for planning (the model health check).\n- Which channels are saturating and which still have headroom, from their response curves (saturation and headroom, marginal ROI, marginal ROAS).\n- Why the model, the causal read, the ad platform and the last lift test disagree on a channel (attribution reconciliation).\n- What a completed geo experiment found, and what it did not (the experiment readout), and which channels to test next (the experiment roadmap).\n- Sort this week's spend anomalies into data issues and real changes (anomaly triage).\n- Marketing effectiveness for a leadership audience, every statement backed by a read (the board briefing), and the plan in finance terms (the P&L translation).\n- Whether the numbers can be trusted this week: sources, freshness, gaps (data health).\n\nTerms it understands: MMM, media mix, incrementality, geo lift, saturation, diminishing returns, ROAS, marginal ROI, marginal ROAS, contribution, budget reallocation, attribution, holdout, lift test.\n\nWho it is for: marketers, analysts and finance partners whose company uses Lifesight. You sign in with your Lifesight login and the workspaces you hold are attached; a workspace admin decides in Lifesight which assistants may connect and what a connection may do there. It needs a Lifesight login that holds a workspace: without one, nothing can be read, the product documentation included.\n\nWrites and decisions: through this plugin the connection reads only. Saving a budget plan, raising a support ticket and asking for a plan to become the workspace default are refused with a note on where they are done in Lifesight. Promotion sets the workspace's default plan in Lifesight and is approved there by the member; no money moves and no ad-platform spend changes.\n\nLimitations: it reports what the platform has measured and never computes a business figure of its own; a question outside the workspace's data is answered with what is missing, not a guess; dates outside a model's data window return no data; it does not change ad-platform budgets, run campaigns or move money.",
         "developerName": "Lifesight",
         "category": "Productivity",
         "capabilities": [
@@ -44,7 +44,7 @@
           "Optimise a budget with the model and compare scenarios side by side",
           "Read geo lift experiments and their results",
           "Check data-source health and sort spend anomalies",
-          "Save a named budget plan and ask for it to become the workspace default, which the member approves in Lifesight",
+          "Check which figures in a draft the thread's own results ground",
           "Search the Lifesight product documentation"
         ],
         "websiteURL": "https://lifesight.io",
@@ -59,6 +59,61 @@
         "brandColor": "#1b3a5c",
         "composerIcon": "./assets/icon.svg",
         "logo": "./assets/logo.svg"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "The weekly performance readout: what moved across channels in the model's terms, with the data caveats stated first.",
+              "prompt": "What moved across channels this week, and where is the data thin?",
+              "tools_triggered": "get_workspace_context, get_mmm_report, get_data_source_health, detect_spend_anomalies, get_cue_cards, check_figures",
+              "expected_behavior": "After the context read, the first tool is get_mmm_report on the champion model for the last full week and the week before; the listed tools are the ones the workflow drives and more reads may follow. Every figure in the answer is quoted with its unit and currency and the platform read named beside it; the data sources' health is reported before any movement is read as a trend. If the model's data window ends before last week, the answer says so first and reports no figures for days the model has not seen."
+            },
+            {
+              "description": "Budget reallocation: where next quarter's spend should move to get more from the same total.",
+              "prompt": "Where should next quarter's budget move to get more from the same spend?",
+              "tools_triggered": "get_workspace_context, get_current_budget_allocation, start_budget_optimisation, get_budget_optimisation, get_channel_saturation_curves, check_figures",
+              "expected_behavior": "After the context read, the first tools are get_current_budget_allocation and start_budget_optimisation at the same total on the champion model; the optimisation answers inline or hands back a handle that get_budget_optimisation reads. The answer explains the moves from the optimiser's own output with units and currency and states the defaults the tool disclosed. Nothing is saved or promoted: the connection reads only."
+            },
+            {
+              "description": "Saturation and headroom: how far each channel can scale before returns fall.",
+              "prompt": "Which channels are saturating, and which still have headroom?",
+              "tools_triggered": "get_workspace_context, get_channel_saturation_curves, get_mmm_report, check_figures",
+              "expected_behavior": "After the context read, the first tool is get_channel_saturation_curves on the champion model. The answer reports, per channel, the saturation level, marginal return and headroom the tool returned, in the model's currency, and names the model and its data window once. No figure is computed by the assistant."
+            },
+            {
+              "description": "Data health: whether the numbers can be trusted this week.",
+              "prompt": "Is every data source fresh and flowing, and what is stuck?",
+              "tools_triggered": "get_workspace_context, get_data_source_health, get_cue_cards, check_figures",
+              "expected_behavior": "After the context read, the first tool is get_data_source_health. The answer lists the workspace's data sources with the freshness and status the tool reports, names what is stuck, and states a missing source as missing. If every source is healthy, the answer says so from the tool's result."
+            },
+            {
+              "description": "Anomaly triage: this week's spend anomalies sorted into data issues and real changes.",
+              "prompt": "Did any channel's spend stop or spike this week?",
+              "tools_triggered": "get_workspace_context, detect_spend_anomalies, get_data_source_health, query_ads_data, check_figures",
+              "expected_behavior": "After the context read, the first tool is detect_spend_anomalies for the last week, then get_data_source_health for the channels involved. The answer sorts each anomaly into a data issue or a real change with the tool's own figures. A week with no anomalies is reported from the tool's no-data warning, and the tool is not called again with the same arguments."
+            }
+          ],
+          "negative": [
+            {
+              "description": "A write the plugin refuses: saving a plan. The connection reads only, so the assistant reports the refusal and where plans are saved in Lifesight, and saves nothing.",
+              "prompt": "Save this plan as the final one for next quarter."
+            },
+            {
+              "description": "A decision the plugin never takes: promotion. The assistant explains that a plan becomes the workspace default only when the member approves it in Lifesight, that no money moves, and that this connection cannot request it; nothing is promoted.",
+              "prompt": "Promote the optimised plan to the workspace default now."
+            },
+            {
+              "description": "A workspace the account does not hold: the assistant reports that the workspace is not among the member's and names the ones that are; nothing is read from it.",
+              "prompt": "Show me the budget allocation for the Northwind workspace."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "No commerce. Nothing is bought, sold or paid for through the plugin. The one decision it can request, making a saved budget plan the workspace's default, is approved by the member in Lifesight and moves no money and changes no ad-platform spend."
+      },
+      "publication": {
+        "release_notes": "First release: the twelve measurement workflows as skills over the Lifesight MCP server; every figure from the platform with its provenance; the connection reads only, with plan promotion approved by the member in Lifesight."
       }
     }
   }
