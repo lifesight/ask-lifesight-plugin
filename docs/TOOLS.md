@@ -88,19 +88,6 @@ Parameters:
 - `turn_id`, string: The turn to read; the latest completed one otherwise.
 - `workspace_id`, string: The workspace of the thread; the active one otherwise.
 
-### `ask_lifesight`: Ask Lifesight (investigation thread)
-
-Scope `lifesight.read`. open-world.
-
-Ask Lifesight, Lifesight's own investigator, run on a thread in the active workspace within one call: it reads the platform, reconciles figures and drafts a report with charts, over minutes; when the answer is not ready the result says status=running and the same thread_id reads it. Use this when a host cannot poll and the member asks by name for a full investigation. Not for a single figure or table (that is the typed tools) or a host that can poll (start_investigation and get_investigation). Example: question="Explain our marketing performance to the CFO.".
-
-Parameters:
-
-- `question`, string: What to ask (not needed with read_latest).
-- `read_latest`, boolean: Do not ask anything: return the thread's latest completed answer (how to read a turn that was still running).
-- `thread_id`, : Continue a thread of yours (also how to read a turn that was still running); the connection's thread in the active workspace otherwise.
-- `workspace_id`, : Run in this workspace for this call only.
-
 ## budget-planning
 
 ### `get_budget_optimisation`: Read a budget optimisation
@@ -418,9 +405,9 @@ What a client reads before the first call:
 
 ```
 Lifesight marketing measurement for this member's workspaces: marketing mix models (MMM), causal attribution, geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies, creative performance, the member's cue cards, and the product docs.
-get_workspace_context, a connection's first call, gives the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date.
+get_workspace_context, a connection's first call, gives the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date, and three questions the workspace can answer today.
 Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, which the payload carries; check_figures reports which figures in a draft the thread's results ground. A needs_input warning carries the questions the member has still to answer.
 switch_workspace changes the active workspace for this connection; every tool also takes workspace_id for one call.
-Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_investigation runs Ask Lifesight, Lifesight's own investigator, on a thread (a compound investigation asked for by name, or to continue a product thread) and get_investigation reads it, a running answer's progress carrying poll_after_s. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_data answers in words over the ad platforms' own figures. The prompts are the workflows members run most.
+Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_investigation runs Ask Lifesight on a thread (a compound investigation asked for by name, or to continue a product thread) and get_investigation reads it, progress carrying poll_after_s. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_data answers in words over the ad platforms' own figures. The prompts are the workflows members run most.
 save_budget_plan (write access) saves a plan by name; request_plan_promotion (decision access) never promotes: the member approves in the product and get_approval_status reads the decision; promotion moves no money. Access the connection lacks is refused with a sentence naming where the member enables it.
 ```

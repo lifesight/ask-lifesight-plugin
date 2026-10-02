@@ -68,14 +68,17 @@ records the rank.
 
 ## What the owner supplies at submission (CG3.4), not in this package
 
+The submission itself, step by step with every input and attestation, is `docs/CHATGPT_SUBMISSION.md`. Since CG3.4
+the manifest carries the five positive and three negative review cases (`extensions.com.openai.review`, taken from
+the harness's selection eval), the commerce declaration and the release notes; the items below stay the owner's.
+
 - The category, from the dashboard's list.
 - `extensions.com.openai.publication.countries`: a manifest field (uppercase ISO country codes, an allowlist;
   the checker validates the shape when present), left out until D-26 names the countries. A release note for
   the version goes in `publication.release_notes` beside it.
-- The reviewer's test account on the populated test workspace (EXT-2), five positive and three negative test
-  cases and the video walkthrough. These can travel in the manifest too (`extensions.com.openai.review`:
-  `test_cases.positive`, `test_cases.negative`, `demo_recording_url`) and are then read-only in the dashboard;
-  the dashboard form is the alternative.
+- The reviewer's test account on the populated test workspace (EXT-2) and the video walkthrough, whose URL goes
+  into `extensions.com.openai.review.demo_recording_url` (`--submission` on the checker refuses a package without
+  it). The eight test cases are in the manifest already and read-only in the dashboard once uploaded.
 - The privacy page's content against OpenAI's five topics (categories of personal data, purposes, recipients,
   retention timelines, controls) plus one sentence each on what the host receives, what Lifesight stores and
   what it never receives; the URL exists today, the content is the owner's.

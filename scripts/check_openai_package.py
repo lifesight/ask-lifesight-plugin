@@ -4,7 +4,9 @@ the agent-plugins.org schemas (vendored in scripts/schemas/), the listing fields
 URLs, the asset rules (square, 48 px or more), the control-character rule, the skill sizes, the version the two
 plugin manifests share, and the copy rules the guidelines state (no "MCP" or "Plugin" in the name, no pricing
 language, nothing steering the model, no figure in model-visible prose). Exit 1 on any failure; the ZIP is
-built only after it. Needs `jsonschema`: `uv run --no-project --with jsonschema python -I scripts/check_openai_package.py`."""
+built only after it. Needs `jsonschema`: `uv run --no-project --with jsonschema python -I scripts/check_openai_package.py`.
+With `--submission` it also demands what the dashboard requires at MCP review and the listing cannot carry until the
+owner has them: `review.demo_recording_url` and `publication.countries` (CG3.4)."""
 from __future__ import annotations
 
 import json
@@ -29,6 +31,10 @@ STEERING = re.compile(
 FIGURE = re.compile(r"\d")  # listing copy is model-visible prose and carries no figure of any kind
 CONTROL = re.compile(r"[\x00-\x08\x09\x0b-\x1f\x7f]")  # tabs and other control characters are rejected; newlines stay
 COUNTRY = re.compile(r"^[A-Z]{2}$")
+REVIEW_COUNTS = {"positive": 5, "negative": 3}  # EXACTLY these for the initial MCP review (submission page, 2026-10-02)
+REVIEW_TEXT_MAX = 4000
+POSITIVE_FIELDS = ("description", "prompt", "tools_triggered", "expected_behavior")
+NEGATIVE_FIELDS = ("description", "prompt")
 
 
 def fail(msg: str, problems: list[str]) -> None:
@@ -72,7 +78,61 @@ def image_square_at_least_48(path: Path) -> str | None:
     return None
 
 
-def main() -> int:
+def tool_names() -> set[str]:
+    """The server's tool names as the generated reference lists them (`docs/TOOLS.md`, the `###` headings)."""
+    return set(re.findall(r"^### `([a-z_]+)`", (ROOT / "docs/TOOLS.md").read_text(), re.M))
+
+
+def check_review(openai: dict, problems: list[str], *, submission: bool) -> None:
+    """`extensions.com.openai.review` (fields and counts from the submission page, read 2026-10-02): exactly five
+    positive cases with a description, a prompt, the tools expected (a comma-separated string) and the observable
+    behaviour; exactly three negative cases with a
+    description and a prompt; the commerce declaration; every text figure-free and free of control characters; the
+    expected tools real. The demo recording URL is required at MCP review, so only `--submission` demands it."""
+    review = openai.get("review")
+    if review is None:
+        if submission:
+            fail("review: the submission needs extensions.com.openai.review (test cases, demo recording)", problems)
+        return
+    names = tool_names()
+    cases = review.get("test_cases", {})
+    for kind, count in REVIEW_COUNTS.items():
+        items = cases.get(kind, [])
+        if len(items) != count:
+            fail(f"review.test_cases.{kind}: exactly {count} for the initial MCP review, {len(items)} given", problems)
+        fields = POSITIVE_FIELDS if kind == "positive" else NEGATIVE_FIELDS
+        for i, case in enumerate(items, start=1):
+            for field in fields:
+                if not case.get(field):
+                    fail(f"review.test_cases.{kind}[{i}] missing {field}", problems)
+            for field in ("description", "prompt", "expected_behavior"):
+                text = str(case.get(field) or "")
+                if len(text) > REVIEW_TEXT_MAX:
+                    fail(f"review.test_cases.{kind}[{i}].{field} is {len(text)} chars; limit {REVIEW_TEXT_MAX}", problems)
+                if FIGURE.search(text):
+                    fail(f"review.test_cases.{kind}[{i}].{field} carries a figure: {FIGURE.search(text).group(0)!r}", problems)
+                if CONTROL.search(text):
+                    fail(f"review.test_cases.{kind}[{i}].{field} carries a control character", problems)
+            triggered = case.get("tools_triggered")
+            if isinstance(triggered, list):  # the page documents a comma-separated STRING; an array is not the shape
+                fail(f"review.test_cases.{kind}[{i}].tools_triggered must be a comma-separated string, not an array", problems)
+                triggered = ", ".join(map(str, triggered))
+            for tool in [t.strip() for t in str(triggered or "").split(",") if t.strip()]:
+                if tool not in names:
+                    fail(f"review.test_cases.{kind}[{i}] names a tool the reference does not list: {tool!r}", problems)
+            if kind == "negative" and case.get("tools_triggered"):
+                fail(f"review.test_cases.negative[{i}] expects a tool; a negative expects none", problems)
+    if not isinstance(review.get("commerce"), bool):
+        fail("review.commerce must be declared true or false", problems)
+    url = str(review.get("demo_recording_url") or "")
+    if url and (not url.startswith("https://") or len(url) > 1024):
+        fail(f"review.demo_recording_url must be an https URL under 1024 chars: {url!r}", problems)
+    if submission and not url:
+        fail("review.demo_recording_url is required for MCP review (the owner's video)", problems)
+
+
+def main(argv: list[str] | None = None) -> int:
+    submission = "--submission" in (argv if argv is not None else sys.argv[1:])
     problems: list[str] = []
     manifest = json.loads((ROOT / "plugin.json").read_text())
     mcp = json.loads((ROOT / "mcp.json").read_text())
@@ -135,9 +195,16 @@ def main() -> int:
     for rel in iface.get("screenshots", []):
         if not (ROOT / rel).is_file():
             fail(f"screenshot missing: {rel}", problems)
-    for code in openai.get("publication", {}).get("countries", []):
+    publication = openai.get("publication", {})
+    for code in publication.get("countries", []):
         if not COUNTRY.match(str(code)):
             fail(f"publication.countries: uppercase two-letter country codes only: {code!r}", problems)
+    if submission and not publication.get("countries"):
+        fail("publication.countries is required at submission (D-26: the owner names the countries)", problems)
+    notes = str(publication.get("release_notes") or "")
+    if FIGURE.search(notes) or CONTROL.search(notes):
+        fail("publication.release_notes carries a figure or a control character", problems)
+    check_review(openai, problems, submission=submission)
     server = mcp["mcpServers"].get("ask-lifesight", {})
     if server.get("url") != SERVER_URL or server.get("type") != "streamable-http":
         fail(f"mcp.json must name the listed server {SERVER_URL} over streamable-http: {server}", problems)
@@ -166,8 +233,11 @@ def main() -> int:
     if problems:
         print("\n".join(f"FAIL {p}" for p in problems))
         return 1
+    review = openai.get("review", {}).get("test_cases", {})
     print(f"ok: plugin.json ({len(iface['longDescription'])}/4000 description chars, "
-          f"{len(iface['shortDescription'])}/30 subtitle chars), mcp.json, {len(skills)} skills, assets")
+          f"{len(iface['shortDescription'])}/30 subtitle chars, {len(review.get('positive', []))} positive and "
+          f"{len(review.get('negative', []))} negative review cases), mcp.json, {len(skills)} skills, assets"
+          + ("; submission-ready" if submission else ""))
     return 0
 
 
