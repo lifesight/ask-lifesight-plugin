@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
-"""Build dist/ask-lifesight-chatgpt.zip, the package the ChatGPT Plugins dashboard takes (developers.openai.com/
-plugins/deploy/submission): plugin.json and mcp.json at the root, skills/ and assets/ beside them, and nothing of
-the Claude or registry files (.claude-plugin/, .mcp.json, server.json, hooks/, guidance/, docs/, README). The two
-skills that make sense as a recurring task get one ChatGPT sentence in their ZIP copy only, so the skills the
-repo ships to Claude Code never change (the plan's §0.4: this build is invisible to Claude). Runs the checker
-first; refuses to build on a failure or a missing file. Run as `uv run --no-project --with jsonschema python -I scripts/build_openai_zip.py` (-I keeps a user
-site out of the picture)."""
+"""Build and inspect the public portable ZIP; --draft and --submission are explicit.
+
+Requires jsonschema and PyYAML. This builds a package, never uploads or submits it.
+"""
 from __future__ import annotations
 
+import argparse
+import importlib.util
 import subprocess
 import sys
 import zipfile
@@ -15,46 +14,40 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "dist" / "ask-lifesight-chatgpt.zip"
-INCLUDE_FILES = ("plugin.json", "mcp.json")
-INCLUDE_DIRS = ("skills", "assets")
-# the plan's sentence (CG3.1), for the two skills a member would run on a schedule; CG3.2 verifies that a plugin
-# runs inside a ChatGPT scheduled task before the listing is submitted
-SCHEDULED_TASK_SKILLS = ("weekly-performance-readout", "data-health")
-SCHEDULED_TASK_NOTE = "\n## In ChatGPT\nSet this as a weekly task in ChatGPT.\n"
-
-
-def packaged(path: Path) -> bytes:
-    data = path.read_bytes()
-    if path.name == "SKILL.md" and path.parent.name in SCHEDULED_TASK_SKILLS:
-        data = data.rstrip(b"\n") + b"\n" + SCHEDULED_TASK_NOTE.encode()
-    return data
 
 
 def main() -> int:
-    check = subprocess.run([sys.executable, "-I", str(ROOT / "scripts/check_openai_package.py")])
-    if check.returncode != 0:
+    parser = argparse.ArgumentParser(description=__doc__)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--draft", action="store_true", help="build for portal draft setup; review materials may be incomplete")
+    mode.add_argument("--submission", action="store_true", help="also require final local review metadata; portal/live checks remain separate")
+    args = parser.parse_args()
+    command = [sys.executable, "-I", str(ROOT / "scripts/check_openai_package.py")]
+    if args.submission:
+        command.append("--submission")
+    check = subprocess.run(command)
+    if check.returncode:
         return check.returncode
-    missing = [n for n in INCLUDE_FILES if not (ROOT / n).is_file()]
-    if missing:
-        print(f"missing: {', '.join(missing)}")
-        return 1
     OUT.parent.mkdir(exist_ok=True)
-    noted = 0
-    with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as zf:
-        for name in INCLUDE_FILES:
-            zf.write(ROOT / name, name)
-        for d in INCLUDE_DIRS:
-            for p in sorted((ROOT / d).rglob("*")):
-                if p.is_file() and "__pycache__" not in p.parts:
-                    data = packaged(p)
-                    noted += data != p.read_bytes()
-                    zf.writestr(str(p.relative_to(ROOT)), data)
-    if noted != len(SCHEDULED_TASK_SKILLS):
-        print(f"expected the scheduled-task note on {len(SCHEDULED_TASK_SKILLS)} skills, wrote {noted}")
+    with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as archive:
+        for name in ("plugin.json", "mcp.json"):
+            archive.write(ROOT / name, name)
+        for directory in ("skills", "assets"):
+            for path in sorted((ROOT / directory).rglob("*")):
+                if path.is_file() and "__pycache__" not in path.parts:
+                    archive.write(path, path.relative_to(ROOT).as_posix())
+    spec = importlib.util.spec_from_file_location("openai_preflight", ROOT / "scripts/openai_preflight.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    problems = module.check_zip(OUT, submission=args.submission)
+    if problems:
+        OUT.unlink()
+        print("\n".join(f"FAIL {p}" for p in problems))
         return 1
-    names = zipfile.ZipFile(OUT).namelist()
-    print(f"wrote {OUT.relative_to(ROOT)}: {len(names)} files, {OUT.stat().st_size} bytes; "
-          f"the scheduled-task note on {noted} skills")
+    with zipfile.ZipFile(OUT) as archive:
+        count = len(archive.namelist())
+    label = "draft" if args.draft else "local review-metadata checked"
+    print(f"wrote {OUT.relative_to(ROOT)}: {count} files, {OUT.stat().st_size} bytes; {label}; production/portal checks pending")
     return 0
 
 

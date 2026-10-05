@@ -1,6 +1,6 @@
 ---
 name: experiment-readout
-description: What a completed geo experiment found and what it did not: lift, confidence, significance, markets, pre-period fit. Use for 'what did the test show', 'was the lift significant'.
+description: "What a completed geo experiment found and what it did not: lift, confidence, significance, markets, pre-period fit. Use for 'what did the test show', 'was the lift significant'."
 ---
 # Experiment readout
 

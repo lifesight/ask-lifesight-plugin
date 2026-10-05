@@ -1,6 +1,6 @@
 ---
 name: model-health-check
-description: Whether the champion MMM model can be trusted for planning: accuracy, backtests, calibration, attribute quality, collinearity, in plain terms. Use for 'can I trust this model', 'is the model any good'.
+description: "Whether the champion MMM model can be trusted for planning: accuracy, backtests, calibration, attribute quality, collinearity, in plain terms. Use for 'can I trust this model', 'is the model any good'."
 ---
 # Model health check
 

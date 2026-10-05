@@ -7,14 +7,14 @@ server, plus the workflows members run most as skills.
 
 Every figure comes from the Lifesight platform, with its unit, currency, model and window
 stated beside it. The server computes the compares, shares and totals; the client quotes them.
-No figure is ever estimated.
+Figures are sourced from tool results; model forecasts and optimisation results are estimates, not guaranteed outcomes.
 
 ## ChatGPT
 
 The same package is a ChatGPT plugin: `plugin.json` (the open agent-plugins manifest with OpenAI's
 `extensions.com.openai.interface` block), `mcp.json` (the server at `https://ask.lifesight.io/mcp`), the
-twelve skills and the brand assets. `uv run --no-project --with jsonschema python -I scripts/build_openai_zip.py`
-checks every documented limit and writes `dist/ask-lifesight-chatgpt.zip` for the Plugins dashboard;
+twelve skills and the brand assets. `uv run --no-project --with jsonschema --with pyyaml python -I scripts/build_openai_zip.py --draft`
+runs local package and ZIP checks and writes `dist/ask-lifesight-chatgpt.zip` for the Plugins dashboard;
 `docs/CHATGPT_LISTING.md` records the listing fields, the search terms and what the owner supplies at
 submission.
 

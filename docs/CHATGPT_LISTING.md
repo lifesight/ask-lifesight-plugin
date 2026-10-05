@@ -1,5 +1,9 @@
 # The ChatGPT plugin listing (WP-CG3.1)
 
+**Preflight update, 2026-10-05:** prepared version 0.2.1; countries US, GB, AU, NZ; seven malformed skill
+front matters corrected; draft ZIP inspected. Review materials, production readiness and portal scans remain
+separate. See `docs/CHATGPT_SUBMISSION.md` for the current workflow.
+
 What the package for the ChatGPT Plugins dashboard is, where each listing field comes from, the search
 terms the directory should match, and what the owner supplies at submission (WP-CG3.4). The plan is
 `docs/CHATGPT_DISCOVERY_BUILD_PLAN.md` in the harness repo; nothing here concerns the Claude listing.
@@ -7,18 +11,18 @@ terms the directory should match, and what the owner supplies at submission (WP-
 ## The package
 
 ```
-uv run --no-project --with jsonschema python -I scripts/build_openai_zip.py
+uv run --no-project --with jsonschema --with pyyaml python -I scripts/build_openai_zip.py --draft
 ```
 
-checks the package against every documented limit (`scripts/check_openai_package.py`, which needs
-`jsonschema` and crashes rather than passes without it; `-I` keeps a broken user site out of the way) and
+runs the local source and final ZIP checks (`scripts/check_openai_package.py`, which needs
+`jsonschema` and `PyYAML`, and fails when a required dependency is missing; `-I` keeps a broken user site out of the way) and
 writes `dist/ask-lifesight-chatgpt.zip`:
 
 | Path | What it is | Source |
 |---|---|---|
 | `plugin.json` | the manifest, the open `agent-plugins.org` 1.0.0 schema with OpenAI's `extensions.com.openai.interface` block | this repo |
 | `mcp.json` | the MCP mapping: `ask-lifesight` over streamable HTTP at `https://ask.lifesight.io/mcp` (D-10 as amended 2026-09-23) | this repo |
-| `skills/` | the twelve workflow skills as the repo ships them to Claude Code, except that the ZIP copy of `weekly-performance-readout` and `data-health` ends with one section, "In ChatGPT: Set this as a weekly task in ChatGPT." The repo's files do not change (the plan's §0.4 keeps this build invisible to Claude) | the builder, `SCHEDULED_TASK_NOTE` |
+| `skills/` | the twelve workflow skills with valid YAML; no generated scheduled-task promise is added | source files, checked again inside the ZIP |
 | `assets/icon.svg`, `assets/logo.svg` | the square Lifesight mark (a 100 by 100 viewBox, SVG; OpenAI asks for a square logo of at least 48 pixels, PNG, JPEG, WebP or SVG under 5 MiB, rasters at most 4096 pixels a side) | the console's `public/logos/lifesight-icon.svg` |
 
 Left out on purpose: `.claude-plugin/`, `.mcp.json`, `server.json`, `hooks/`, `guidance/`, `docs/`, `README.md`
@@ -74,7 +78,8 @@ the harness's selection eval), the commerce declaration and the release notes; t
 
 - The category, from the dashboard's list.
 - `extensions.com.openai.publication.countries`: a manifest field (uppercase ISO country codes, an allowlist;
-  the checker validates the shape when present), left out until D-26 names the countries. A release note for
+  the checker validates the shape when present). The owner selected US, GB, AU and NZ on 5 October;
+  omission is allowed by OpenAI and preserves saved portal targeting. A release note for
   the version goes in `publication.release_notes` beside it.
 - The reviewer's test account on the populated test workspace (EXT-2) and the video walkthrough, whose URL goes
   into `extensions.com.openai.review.demo_recording_url` (`--submission` on the checker refuses a package without
@@ -90,15 +95,14 @@ the harness's selection eval), the commerce declaration and the release notes; t
 ## Findings recorded here
 
 - The Claude side (`.mcp.json`, `server.json`) still names `https://mcp.lifesight.io/mcp`; the customer URL is
-  `https://ask.lifesight.io/mcp` since D-10 was amended. `server.json` also still says version 0.1.0 while both
-  plugin manifests say 0.2.0 (the registry entry was published at 0.1.0). Both are the Claude listing build's
+  `https://ask.lifesight.io/mcp` since D-10 was amended. `server.json` also still says version 0.1.0 while the prepared
+  plugin manifests say 0.2.1 (the registry entry was published at 0.1.0). Both are the Claude listing build's
   change, not this one; the checker compares the two plugin manifests only.
 - Three skills quote member utterances and argument formats with figures ("Meta says 4x", "what if I cut 10%",
   "+20%"). They are inputs, not platform figures, and they ship to Claude Code already; whether to reword them
   figure-free is a Claude-visible decision for that build.
-- Scheduled tasks: the ZIP's two skills say "Set this as a weekly task in ChatGPT" and nothing more; CG3.2
-  verifies that plugins run inside scheduled tasks before the listing is submitted (the research note records
-  that event-triggered tasks are gated by an Enterprise admin and off by default).
+- Scheduled tasks: the old builder appended an unverified ChatGPT scheduling promise. Version 0.2.1 removes
+  it. Scheduling is not advertised until actual execution is verified.
 - `claude plugin validate .` validates only `.claude-plugin/marketplace.json`; the plugin manifest and the skills
   are checked by `claude plugin validate --strict .claude-plugin/plugin.json` and `claude plugin validate
-  --strict skills`. All three pass after this build.
+  --strict skills`. These Claude-specific validators were not rerun for the public preflight; the original package is preserved.

@@ -1,6 +1,6 @@
 ---
 name: saturation-and-headroom
-description: How far a channel can scale before returns fall, from its own response curve: headroom, marginal ROI, saturation level. Use for 'can I scale X', 'is Meta saturated'.
+description: "How far a channel can scale before returns fall, from its own response curve: headroom, marginal ROI, saturation level. Use for 'can I scale X', 'is Meta saturated'."
 ---
 # Saturation and headroom
 

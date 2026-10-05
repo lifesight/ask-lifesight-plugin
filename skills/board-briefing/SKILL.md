@@ -1,6 +1,6 @@
 ---
 name: board-briefing
-description: Marketing effectiveness for a leadership audience: five statements, each backed by one read, no jargon. Use for 'board summary', 'exec update', 'one page for leadership'.
+description: "Marketing effectiveness for a leadership audience: five statements, each backed by one read, no jargon. Use for 'board summary', 'exec update', 'one page for leadership'."
 ---
 # Board briefing
 
