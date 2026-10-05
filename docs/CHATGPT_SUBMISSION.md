@@ -1,89 +1,104 @@
-# The ChatGPT submission (WP-CG3.4)
+# ChatGPT submission runbook — updated 5 October 2026
 
-The owner's runbook for submitting Ask Lifesight to the ChatGPT plugin directory: what the package already
-carries, what the owner supplies on the day, the dashboard steps as OpenAI documents them (read 2026-10-02 at
-`developers.openai.com/plugins/deploy/submission`), what happens after, and the gate. Nothing here concerns
-the Claude listing, except one rule: no visible change to the shared server lands while both reviews are open.
+The public package is prepared as version `0.2.1`. Draft setup, review submission and publication are
+separate milestones. Local checks cannot prove portal scan outcomes, reviewer access or production health.
 
-Plan: `docs/CHATGPT_DISCOVERY_BUILD_PLAN.md` CG3.4 in the harness repo. Depends on CG3.1 (the package), CG3.2
-(the developer-mode proof), CG3.3 (the selection eval, whose cases the review block quotes), EXT-2 (the
-populated test workspace). Decision D-26: submit from a global-residency project; Europe verified before
-promised.
+## What is prepared
 
-## 1. What the package carries (built)
+The package contains a production MCP endpoint, twelve workflow skills, branding, listing metadata,
+five positive and three negative case definitions, commerce disclosure and release notes. It preserves
+read, write and decide. The owner selected United States, UK, Australia and New Zealand: `US`, `GB`, `AU`, `NZ`.
 
-| Item | Where | State |
-|---|---|---|
-| the manifest, listing fields, assets, twelve skills | `plugin.json`, `assets/`, `skills/` (CG3.1) | built |
-| five positive review cases: description, prompt, `tools_triggered` (a comma-separated string, as the page documents), `expected_behavior` | `extensions.com.openai.review.test_cases.positive` | built; the prompts are the harness selection eval's indirect prompts for the weekly readout, budget reallocation, saturation and headroom, data health and anomaly triage, verbatim; the tools are every tool the workflow's skill drives (the fifth case, from 2026-10-04, is the write path: optimise, save, request promotion, read the approval), the first after the context named in the behaviour; each behaviour is server-observable (which tools answer, units and currency and provenance on every figure, a no-data result stated) with the data-window caveat conditional. **Rewrite each to what was observed on the test workspace before submitting** (step 5): a champion whose window ends before last week makes the weekly case read differently |
-| three negative review cases: description, prompt | `extensions.com.openai.review.test_cases.negative` | built; OpenAI defines a negative as a prompt the plugin should not act on with the expected refusal or safe fallback, so the three are the plugin's own refusals: moving spend in the ad platforms (the plugin changes no ad-platform budget), deleting a saved plan (no tool deletes), a workspace the account does not hold. Corrected 2026-10-04: CG3.4 first made a save and a promotion refusals on a misreading of D-20, whose locked pick is writes as today behind scopes on every host |
-| the commerce declaration | `review.commerce: false`, `review.commerce_description` | built: nothing is bought, sold or paid for; plan promotion moves no money |
-| release notes for this version | `extensions.com.openai.publication.release_notes` | built |
-| the checker's submission mode | `scripts/check_openai_package.py --submission` | built: refuses a package without the demo recording URL or the countries |
+Seven previously malformed YAML descriptions are quoted correctly. The optimisation case no longer calls
+the entire connection read-only. Model forecasts are described as estimates. The public builder no longer
+adds an unverified ChatGPT scheduled-task instruction. Existing private hooks/bindings remain in the
+original source; the public ZIP excludes them.
 
-## 2. What the owner supplies on the day
+## Build a draft ZIP
 
-| Input | Where it goes | Notes |
-|---|---|---|
-| the video walkthrough | `review.demo_recording_url` (https, reachable by the reviewer) | the five positive cases in order, on the test workspace; a hosted link (Drive with link access, Loom) |
-| the countries | `publication.countries`, uppercase ISO codes | D-26: a global-residency project; the EEA, Switzerland and the UK only once availability there is verified (research note A: no 2026 primary statement lifts the exclusion) |
-| the category | the dashboard's list (the manifest's "Productivity" is a placeholder) | pick at upload |
-| the reviewer's test account | the dashboard: Metadata & Skills, Review information, Review details (login URL, workspace, sign-in instructions) | EXT-2's test workspace, populated with sample data, not a real customer's; no MFA, no email or SMS code, no magic link, no private network; it must work at once; the admin has turned ChatGPT on in that workspace (the hosts row) **and granted the write and decide permissions** (D-20 (a)), since the fifth positive case saves a plan and requests its promotion. Keep the account and its data available for later reviews |
-| the domain-verification token | the gateway's `OPENAI_APPS_CHALLENGE_TOKEN` (CG2.2, platform PR #491) | the dashboard shows the token; the gateway serves it as plain text at `https://ask.lifesight.io/.well-known/openai-apps-challenge`; a blank token answers 404 by design (the controller in #491; as of 2026-10-02 the live host answers 404, so either the route is not deployed or the token is blank) |
-| the privacy page content | `https://lifesight.io/privacy-policy/` | OpenAI's five topics (categories of personal data, purposes, recipients, retention timelines, controls) plus one sentence each on what the host receives, what Lifesight stores and what it never receives |
-| a LICENSE file | the repo root | two manifests (`plugin.json`, `.claude-plugin/plugin.json`) say Apache-2.0; none exists |
-| the version | `plugin.json` and `.claude-plugin/plugin.json`, the same number | any metadata or skill change after an upload needs a new version and a complete ZIP; a change to the hosted tools needs no upload |
+Draft mode checks package structure and present metadata while allowing unfinished review materials.
 
-## 3. The steps
+```bash
+uv run --no-project --with jsonschema --with pyyaml python -I scripts/check_openai_package.py
+uv run --no-project --with jsonschema --with pyyaml python -I scripts/build_openai_zip.py --draft
+```
 
-1. Fill §2's manifest fields (the demo URL, the countries), bump the version if anything changed since the
-   last upload, then build:
+The builder checks the actual ZIP, including its manifests, skill YAML, paths and assets. It includes only
+`plugin.json`, `mcp.json`, `skills/` and `assets/`. Record the SHA-256 of the exact artifact uploaded. Draft
+validation is not a successful final review or tool scan.
 
-   ```
-   uv run --no-project --with jsonschema python -I scripts/check_openai_package.py --submission
-   uv run --no-project --with jsonschema python -I scripts/build_openai_zip.py
-   ```
+## Portal draft and domain setup
 
-   The first refuses a package the dashboard would refuse; the second writes `dist/ask-lifesight-chatgpt.zip`.
-2. In the Plugins dashboard: Upload new or existing plugin, Upload plugin, choose the ZIP. Read the automated
-   findings under "Metadata & Skills" and "MCPs"; fix and re-upload until clean.
-3. Domain verification: the portal shows a challenge token; set it on the gateway (`OPENAI_APPS_CHALLENGE_TOKEN`),
-   deploy, and confirm `curl https://ask.lifesight.io/.well-known/openai-apps-challenge` answers the token as
-   plain text; then verify in the portal.
-4. Pick the category, confirm the listing fields render, attach nothing else (a ZIP with app references or
-   lifecycle hooks cannot be submitted; `mcp.json` is the route).
-5. Reviewer access: the test account, login URL, workspace and sign-in instructions; run the five positive
-   cases yourself on that account first and keep the transcripts.
-6. Select the draft, Submit for review, complete the policy attestations. One review is active per plugin at a
-   time (the submission page); no expedite requests (the plugin policies page, research note B). A value the
-   package carries (the demo URL, the cases) is reapplied on submit over anything edited in the dashboard, so
-   change the manifest, not the form.
-7. If the Claude listing's review window (EXT-3) is open, land no visible change to the shared server until
-   both reviews close (§0.4 of the plan).
+Use the intended verified publisher and project when creating the draft and connecting the actual server.
 
-## 4. After submission
+1. Confirm verified business identity and submission permission for the organization/project. The package
+   cannot prove either. Follow the current portal's project eligibility checks.
+2. Upload the valid ZIP with its MCP server included; resolve upload validation errors before proceeding.
+3. Open MCPs, Connect. Confirm `https://ask.lifesight.io/mcp` and OAuth. Obtain the portal's exact challenge
+   URL and token. The owner selected `https://ask.lifesight.io`; a token has not been issued yet.
+4. Deploy the prepared gateway configuration with that token, check public HTTP 200 and exact `text/plain`
+   body, then verify in the portal. G01's deployment worktree is `ls4x/k8s-wt-g01-domain`. Keep the token
+   out of chat and audit reports.
+5. Connect and authenticate, wait for the tool scan, inspect all discovered tools and any findings. After
+   server fixes use Reconnect or Rescan as appropriate. Do not scan staging and call it production proof.
 
-- Feedback arrives by email. A rejection names the reason; fix, bump the version, re-upload, resubmit. An appeal is
-  a reply to the rejection email.
-- After publication OpenAI scans the hosted MCP server daily (a scan can be requested right after a deploy): a new
-  tool stays unavailable until approved, and a changed tool keeps its previously approved metadata while the update
-  is held. A tool rename is therefore a listing event.
-- The listing URL goes on the plan's status board and into the console's card
-  (`VITE_ASK_LIFESIGHT_CHATGPT_PLUGIN_URL`, CG2.3), which until then says the link follows the listing.
-- CG3.6 then watches the by-host measures and searches the directory for the listing's terms.
+## Required closeout before review
 
-## 5. The gate
+Review the saved draft and exercised production experience before submitting for human review.
 
-Listed in the directory; the listing URL on the status board and in CG2.3's card; the review cases as run by the
-reviewer match what the harness returned on the test workspace.
+- Resolve required setup/validation errors and inspect all skill safety/security scan results. Our target is
+  zero unresolved findings; OpenAI permits some nonblocking findings to be sent for review.
+- Correct the published privacy policy to reflect actual AI processing, recipients, retention and controls.
+  A reachable URL alone is insufficient. Review terms/support coverage and test the public contact route.
+- Close the access-control and scope gaps in the MIA audit, particularly support-ticket ownership,
+  persistent file imports, bounded investigation reach and approval targets. Review actual tool annotations.
+- Run the five positives on a dedicated sample-data reviewer account with read, write and decide access.
+  Compare actual tool calls and outputs against the definitions; keep the three negative outcomes too.
+  Definitions in the manifest do not claim execution. Promotion requires the human gate in Lifesight.
+- Record and host a walkthrough of actual interactions. Verify playback without requesting private access,
+  then set `review.demo_recording_url` to its real HTTPS URL. Do not substitute a script or placeholder URL.
+- Enter reviewer credentials, login URL, workspace and sign-in instructions only through secure portal
+  fields. Test immediate login without MFA approval, codes, magic links or private-network dependencies.
+- Confirm the imported publisher, cases, release notes and countries. Test availability for the chosen
+  regions, including the UK. Confirm commerce=false accurately describes the submitted tools.
+- Inspect the uploaded metadata version and the current production tool snapshot together. Reupload replaces
+  package contents; omitted fields can preserve earlier saved values. Do not assume a new ZIP clears them.
 
-## 6. Results
+## Local final-metadata checks
 
-| Item | Result | Date |
-|---|---|---|
-| ZIP uploaded, automated checks clean | | |
-| domain verified | | |
-| submitted for review | | |
-| review outcome | | |
-| listing URL | | |
-| card variable set and deployed | | |
+Final-metadata mode demands the actual demo URL and complete review definitions. Online checks remain separate.
+
+```bash
+uv run --no-project --with jsonschema --with pyyaml python -I scripts/check_openai_package.py --submission
+uv run --no-project --with jsonschema --with pyyaml python -I scripts/build_openai_zip.py --submission
+uv run --no-project --with pyyaml python -I tests/test_openai_preflight.py
+```
+
+Country declarations are optional in the ZIP. Omitting them preserves portal targeting; an explicit empty
+list removes restrictions. This package explicitly uses the owner's four selected codes. Final imported
+targeting still needs confirmation in the portal. Optional dark assets and screenshots are not required;
+screenshots are appropriate only if the tool scan reports a UI output template. This package has none.
+
+## Review and publication
+
+The authorized publisher completes attestations and controls when the reviewed package becomes public.
+
+Once closeout is complete, select Submit for review and complete the real policy attestations. Do not attest
+that unresolved privacy, access or reviewer-flow issues are fixed. When approved, select the approved version
+and Publish plugin. Verify the listing URL and directory search, then run a post-publication connection smoke.
+An approved version is not publicly listed until published. Metadata/skill changes need the package workflow;
+hosted tool changes use deployment and rescanning. Keep the live tool contract compatible during review.
+
+## Official sources and a documentation conflict
+
+The current portal and official documentation define submission behavior; our checker covers local package rules.
+
+[Submission](https://developers.openai.com/plugins/deploy/submission),
+[validation errors](https://developers.openai.com/plugins/deploy/submission-errors),
+[plugin guidelines](https://developers.openai.com/plugins/plugin-guidelines),
+[MCP review](https://developers.openai.com/plugins/deploy/app-review).
+
+The guidelines explicitly say annotation justifications are no longer required, while the error reference
+still lists `justification_required`. We preserve explicit accurate boolean annotations and do not invent
+an undocumented wire field. If the portal reports that error, retain the exact finding and resolve the
+conflict with OpenAI. Portal scan results remain unverified until actually observed.

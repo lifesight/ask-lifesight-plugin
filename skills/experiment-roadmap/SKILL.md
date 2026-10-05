@@ -1,6 +1,6 @@
 ---
 name: experiment-roadmap
-description: Which channels to test next, from where the model is least certain: unanchored, flagged, high spend share. Use for 'what should we test next', 'where do we need a lift test'.
+description: "Which channels to test next, from where the model is least certain: unanchored, flagged, high spend share. Use for 'what should we test next', 'where do we need a lift test'."
 ---
 # Experiment roadmap
 

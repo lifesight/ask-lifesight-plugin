@@ -1,6 +1,6 @@
 ---
 name: pnl-translation
-description: The promoted plan in finance terms: spend, forecast outcome, return per unit of spend, current versus plan. Use for 'explain this to the CFO', 'what does the plan mean for the P&L'.
+description: "The promoted plan in finance terms: spend, forecast outcome, return per unit of spend, current versus plan. Use for 'explain this to the CFO', 'what does the plan mean for the P&L'."
 ---
 # P&L translation
 

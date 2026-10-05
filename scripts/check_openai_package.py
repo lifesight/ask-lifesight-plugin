@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-"""The ChatGPT plugin package against every documented limit (developers.openai.com/plugins, read 2026-10-02):
+"""The ChatGPT plugin package against the local package checks (developers.openai.com/plugins, read 2026-10-02):
 the agent-plugins.org schemas (vendored in scripts/schemas/), the listing fields' character limits, the HTTPS
 URLs, the asset rules (square, 48 px or more), the control-character rule, the skill sizes, the version the two
 plugin manifests share, and the copy rules the guidelines state (no "MCP" or "Plugin" in the name, no pricing
 language, nothing steering the model, no figure in model-visible prose). Exit 1 on any failure; the ZIP is
-built only after it. Needs `jsonschema`: `uv run --no-project --with jsonschema python -I scripts/check_openai_package.py`.
+built only after it. Needs `jsonschema` and `PyYAML`: `uv run --no-project --with jsonschema --with pyyaml python -I scripts/check_openai_package.py`.
 With `--submission` it also demands what the dashboard requires at MCP review and the listing cannot carry until the
-owner has them: `review.demo_recording_url` and `publication.countries` (CG3.4)."""
+owner has them: `review.demo_recording_url` (CG3.4). Country declarations in the ZIP are optional; verify targeting in the portal."""
 from __future__ import annotations
 
 import json
+import importlib.util
 import re
 import struct
 import sys
@@ -134,6 +135,13 @@ def check_review(openai: dict, problems: list[str], *, submission: bool) -> None
 def main(argv: list[str] | None = None) -> int:
     submission = "--submission" in (argv if argv is not None else sys.argv[1:])
     problems: list[str] = []
+    spec = importlib.util.spec_from_file_location("openai_preflight", ROOT / "scripts/openai_preflight.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    problems.extend(module.check_source(ROOT, submission=submission))
+    if problems:
+        print("\n".join(f"FAIL {p}" for p in problems))
+        return 1
     manifest = json.loads((ROOT / "plugin.json").read_text())
     mcp = json.loads((ROOT / "mcp.json").read_text())
     claude = json.loads((ROOT / ".claude-plugin/plugin.json").read_text())
@@ -199,8 +207,6 @@ def main(argv: list[str] | None = None) -> int:
     for code in publication.get("countries", []):
         if not COUNTRY.match(str(code)):
             fail(f"publication.countries: uppercase two-letter country codes only: {code!r}", problems)
-    if submission and not publication.get("countries"):
-        fail("publication.countries is required at submission (D-26: the owner names the countries)", problems)
     notes = str(publication.get("release_notes") or "")
     if FIGURE.search(notes) or CONTROL.search(notes):
         fail("publication.release_notes carries a figure or a control character", problems)
@@ -237,7 +243,7 @@ def main(argv: list[str] | None = None) -> int:
     print(f"ok: plugin.json ({len(iface['longDescription'])}/4000 description chars, "
           f"{len(iface['shortDescription'])}/30 subtitle chars, {len(review.get('positive', []))} positive and "
           f"{len(review.get('negative', []))} negative review cases), mcp.json, {len(skills)} skills, assets"
-          + ("; submission-ready" if submission else ""))
+          + ("; local review-metadata checks passed; production/portal checks pending" if submission else "; draft package checks passed"))
     return 0
 
 

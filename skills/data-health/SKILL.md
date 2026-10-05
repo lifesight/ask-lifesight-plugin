@@ -1,6 +1,6 @@
 ---
 name: data-health
-description: Whether the numbers can be trusted this week: sources, freshness, gaps, and which reads each gap dulls. Use for 'is the data fresh', 'why is Meta missing'.
+description: "Whether the numbers can be trusted this week: sources, freshness, gaps, and which reads each gap dulls. Use for 'is the data fresh', 'why is Meta missing'."
 ---
 # Data health
 
