@@ -94,10 +94,12 @@ the harness's selection eval), the commerce declaration and the release notes; t
 
 ## Findings recorded here
 
-- The Claude side (`.mcp.json`, `server.json`) still names `https://mcp.lifesight.io/mcp`; the customer URL is
-  `https://ask.lifesight.io/mcp` since D-10 was amended. `server.json` also still says version 0.1.0 while the prepared
-  plugin manifests say 0.2.1 (the registry entry was published at 0.1.0). Both are the Claude listing build's
-  change, not this one; the checker compares the two plugin manifests only.
+- ~~The Claude side (`.mcp.json`, `server.json`) still names `https://mcp.lifesight.io/mcp`~~ **CLOSED,
+  verified 2026-10-06:** `.mcp.json`, `mcp.json`, `server.json`'s `remotes` and the README's install
+  section all name `https://ask.lifesight.io/mcp`. The old 1.0 host appears nowhere in this repository
+  except in this note. `server.json` DOES still say version 0.1.0 while the plugin manifests say 0.2.1
+  (the registry entry was published at 0.1.0) — that half of the finding stands, and it is the Claude
+  listing build's change, not this one; the checker compares the two plugin manifests only.
 - Three skills quote member utterances and argument formats with figures ("Meta says 4x", "what if I cut 10%",
   "+20%"). They are inputs, not platform figures, and they ship to Claude Code already; whether to reword them
   figure-free is a Claude-visible decision for that build.
