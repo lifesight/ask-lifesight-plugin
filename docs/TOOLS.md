@@ -16,7 +16,7 @@ Parameters:
 
 ### `switch_workspace`: Switch workspace
 
-Scope `lifesight.read`. idempotent.
+Scope `lifesight.read`. destructive, idempotent.
 
 The workspace this connection operates on, changed: every later call runs there until switched again, and the switch is confirmed with the workspace's name. Use this when the member names another workspace of theirs to work in from now on. Not for one call in another workspace (every tool takes workspace_id for that) or for finding out which workspaces the member holds (get_workspace_context). It runs on its own, not beside a query, with a workspace id from get_workspace_context. Example: workspace_id="<id>".
 
@@ -26,7 +26,7 @@ Parameters:
 
 ### `send_feedback`: Send feedback
 
-Scope `lifesight.read`. idempotent.
+Scope `lifesight.read`. destructive, idempotent.
 
 The member's verdict on an Ask Lifesight answer, recorded against the thread and turn ids the answer carried: thumbs up or down with an optional note, feeding Lifesight's evaluation set. Use this when the member says an investigation's answer was right, wrong or unhelpful. Not for a problem that needs a human (that is raise_support_ticket) or feedback on a typed tool's result (nothing records that). Example: turn_id="<turn>", verdict="down", note="the Meta figure was last year's".
 
@@ -66,7 +66,7 @@ Parameters:
 
 ### `start_investigation`: Start an Ask Lifesight investigation
 
-Scope `lifesight.read`. open-world.
+Scope `lifesight.read`. destructive, open-world.
 
 Ask Lifesight, Lifesight's own investigator, started on a thread in the active workspace and returned at once with thread_id, turn_id and the thread's link: it reads the platform with the tools listed on this server, reconciles the figures and drafts the answer with charts over minutes. Use this when the member asks by name for a full investigation or a report with several parts and figures to reconcile, or to continue a thread from the product (thread_id). Not for a single figure, table or curve (that is the typed tools) or reading the answer (get_investigation). One question at a time per thread. Example: question="Why did Meta's return fall in Q3 and what should we change?".
 
@@ -128,7 +128,7 @@ Parameters:
 
 ### `start_budget_optimisation`: Start a budget optimisation
 
-Scope `lifesight.read`. open-world.
+Scope `lifesight.read`. destructive, open-world.
 
 Runs the model's optimiser on a budget and answers within about 20 seconds: the result inline when the solve is quick, else a handle to read with get_budget_optimisation. Use this when the member asks how to split a budget, what to reallocate, or the smallest budget that reaches a target: mode maximise splits total_budget across channels for the best outcome (a figure "500000" or an expression on today's spend "current +10%"; blank reallocates what is spent today); mode target_kpi finds the smallest budget that reaches target_kpi_value. Not for comparing several budgets at once (that is compare_budget_scenarios) or saving a plan (save_budget_plan). constraint_type bounds each channel as a multiple of its historical spend: Current, Conservative, Moderate (the default), Aggressive, or Custom with channel_overrides. time_period is the plan horizon (default a quarter); dates are derived from it, never passed. sections for maximise: allocation (always), forecast, pacing, worksheet, one solve for all. Each call creates a scratch scenario on the platform, not a saved plan. The budget and the constraints are the member's stated values; a needs_input warning names any that is missing. Example: mode="maximise", total_budget="current +10%", model_id from list_mmm_models.
 
@@ -147,7 +147,7 @@ Parameters:
 
 ### `compare_budget_scenarios`: Compare budget scenarios
 
-Scope `lifesight.read`. open-world.
+Scope `lifesight.read`. destructive, open-world.
 
 Up to six budget scenarios optimised on one MMM model and one baseline, side by side: each scenario's outcome, its ROAS (or CPA on a count model) and per-channel allocation with the platform's own deltas against current spend; a solve that takes tens of seconds, creates scratch scenarios and changes no budget. Use this when the member asks what +20% versus -20% looks like, which of several budgets to pick, or how a cut compares with holding. Not for one budget's split (that is start_budget_optimisation) or today's allocation (get_current_budget_allocation). Each scenario is {label, total_budget, constraint_type, description}; total_budget is an amount the member stated or an expression on the current budget ("current", "current -10%", "+20%"). constraint_type: Current, Conservative (default), Moderate, Aggressive or Custom. With one champion and no model_id or time_period the tool plans on it and a quarter and reports the defaults; with several it returns the question to put to the member and nothing runs. A scenario whose bounds cannot place its budget is refused with why. Example: scenarios=[{"label":"Hold","total_budget":"current"},{"label":"Cut","total_budget":"current -10%"}].
 
