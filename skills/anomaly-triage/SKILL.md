@@ -10,7 +10,7 @@ description: Sort recent spend anomalies into data issues and real changes, with
 ## How
 1. `detect_spend_anomalies` with `window_days` as the member said (blank = the tool's default).
 2. `get_data_source_health`: an anomaly on a source that is stale or failing is a data issue first, whatever the figure says.
-3. For each remaining anomaly, `query_ads_data` in words for what the ad platform reports about that source and window. These are platform-reported figures, not incremental; say so.
+3. For each remaining anomaly, `query_ads_intelligence` in words for what the ad platform reports about that source and window. These are platform-reported figures, not incremental; say so.
 
 ## Output
 Two lists. **Data issues**: the source, since when, what the health read says. **Real changes**: the source, the figure and the window as the anomaly result gives them, what the platform reports. Then one recommended check per real change.

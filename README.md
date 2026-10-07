@@ -66,7 +66,7 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | Save a plan by name (scope `lifesight.write`) | `save_budget_plan` |
 | Make a plan the workspace's default, with your approval in the product (scope `lifesight.decide`) | `request_plan_promotion`, `get_approval_status` |
 | Is the data fresh, what looks odd in spend | `get_data_source_health`, `detect_spend_anomalies` |
-| What the ad platforms report, in words | `query_ads_data` |
+| Lifesight Ads & Creative Intelligence: ad performance, spend, campaigns and creatives across marketing platforms, as the platforms report them, in words | `query_ads_intelligence` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
 | Raise a ticket with Lifesight support, or check one (scope `lifesight.write`) | `raise_support_ticket` |
 | A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_investigation`, `get_investigation` |

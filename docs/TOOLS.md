@@ -1,6 +1,6 @@
 # Ask Lifesight MCP: tool reference
 
-Generated from the server's published surface; do not edit by hand. Every result is a `structuredContent` object with `summary`, `workspace`, `data`, `provenance`, `links`, `next` and `warnings` (see the README).
+Generated from the server's versioned surface; do not edit by hand. Responses provide `structuredContent`; facade results include `summary`, `workspace`, `data`, `provenance`, `links`, `next` and `warnings`. Native tools use their own output schemas.
 
 ## ask_lifesight
 
@@ -204,13 +204,13 @@ Parameters:
 - `total_budget` (required), number: The budget to plan, in the model's currency, as the member stated it.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
-## ads-data
+## ads-intelligence
 
-### `query_ads_data`: Query ads data
+### `query_ads_intelligence`: Lifesight Ads & Creative Intelligence
 
 Scope `lifesight.read`. read-only, idempotent, open-world.
 
-The ad platforms' own reported figures from the workspace's ads mart in BigQuery (spend, impressions, clicks, conversions, ROAS and CPA by platform, campaign and day), answered in words by Lifesight's data agent for the workspace: one fixed operation, a read of that mart; platform-reported figures, not the model's incremental ones. Use this when the member asks what a platform reported, spend by campaign or week, or clicks and impressions. Not for what a channel drove (that is get_mmm_report) or what was incremental (get_attribution_report). Rows are capped; the question names platforms, metrics and the window. Example: question="Google Ads spend by week last month".
+Analyze ad performance, spend, campaigns, and creatives across marketing platforms. The ad platforms' own reported figures from the workspace's ads mart in BigQuery (spend, impressions, clicks, conversions, ROAS and CPA by platform, campaign and day), answered in words by Lifesight's data agent for the workspace: one fixed operation, a read of that mart; platform-reported figures, not the model's incremental ones. Use this when the member asks what a platform reported, spend by campaign or week, or clicks and impressions. Not for what a channel drove (that is get_mmm_report) or what was incremental (get_attribution_report). Rows are capped; the question names platforms, metrics and the window. Example: question="Google Ads spend by week last month".
 
 Parameters:
 
@@ -373,16 +373,27 @@ Parameters:
 
 Scope `lifesight.write`. destructive, open-world.
 
-A ticket with Lifesight support in the member's name, raised or checked (needs write access): to raise one, summary (one line, the title), description (the member's own words) and category (technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation or feature_request) with priority low, medium (default), high or critical; to check one, ticket_key only. Use this when the member asks for support or a human, disputes figures, hits an error a retry will not fix, or finds data missing or wrong. Not for a question the documentation answers (that is search_lifesight_docs). Returns the key and its link, or the ticket's state, assignee and last update; a ticket is visible to Lifesight staff and is raised at the member's request. Example: summary="Meta spend missing since Monday", description="<the member's words>", category="data_issue".
+Creates a ticket with Lifesight support in the member's name (needs write access). The ticket contains summary (one line, the title), description (the member's own words), category (technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation or feature_request) and priority low, medium (default), high or critical. Use this when the member requests support or a human, disputes figures, hits a persistent error, or finds missing or wrong data. Not for documentation questions (search_lifesight_docs) or checking an existing ticket (get_support_ticket_status). Returns the new ticket key and link; the ticket is visible to Lifesight staff. Existing ticket status is read by get_support_ticket_status. Example: summary="Meta spend missing since Monday", description="<the member's words>", category="data_issue".
 
 Parameters:
 
-- `category`, string: What kind of issue (to raise). One of: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation, feature_request.
-- `description`, string: The member's own words about the problem (to raise).
+- `category` (required), string: What kind of issue. One of: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation, feature_request.
+- `description` (required), string: The member's own words about the problem.
 - `priority`, string: How urgent. One of: low, medium, high, critical.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
-- `summary`, string: One line, the ticket's title (to raise).
-- `ticket_key`, string: A ticket raised before (its key, e.g. ABC-123), to check its state; leave out to raise one.
+- `summary` (required), string: One line, the ticket's title.
+- `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
+
+### `get_support_ticket_status`: Support ticket status
+
+Scope `lifesight.read`. read-only, idempotent, open-world.
+
+Reads an existing Lifesight support ticket belonging to the active workspace; creates or changes nothing. Use this when the member asks what happened to a ticket, using the ticket_key returned at creation. Returns its summary, state, assignee and last update. Foreign, unowned and unavailable tickets return the same unavailable response. Not for creating a ticket (raise_support_ticket). Example: ticket_key="ABC-123".
+
+Parameters:
+
+- `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
+- `ticket_key` (required), string: The key returned when the support ticket was created.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
 ## cue-cards
@@ -408,6 +419,6 @@ Lifesight marketing measurement for this member's workspaces: marketing mix mode
 get_workspace_context, a connection's first call, gives the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date, and three questions the workspace can answer today.
 Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, which the payload carries; check_figures reports which figures in a draft the thread's results ground. A needs_input warning carries the questions the member has still to answer.
 switch_workspace changes the active workspace for this connection; every tool also takes workspace_id for one call.
-Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_investigation runs Ask Lifesight on a thread (a compound investigation asked for by name, or to continue a product thread) and get_investigation reads it, progress carrying poll_after_s. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_data answers in words over the ad platforms' own figures. The prompts are the workflows members run most.
+Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_investigation runs Ask Lifesight on a thread (a compound investigation asked for by name, or to continue a product thread) and get_investigation reads it, progress carrying poll_after_s. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_intelligence answers in words over platform-reported figures. The prompts are the workflows members run most.
 save_budget_plan (write access) saves a plan by name; request_plan_promotion (decision access) never promotes: the member approves in the product and get_approval_status reads the decision; promotion moves no money. Access the connection lacks is refused with a sentence naming where the member enables it.
 ```
