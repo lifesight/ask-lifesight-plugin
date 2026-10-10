@@ -9,6 +9,7 @@ import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location("preflight", ROOT / "scripts/openai_preflight.py")
@@ -138,6 +139,77 @@ class PreflightTests(unittest.TestCase):
     def test_zip_payload_revalidated_not_just_source(self):
         (self.root / "skills/board-briefing/SKILL.md").write_text("---\nname: board\ndescription: Broken: YAML\n---\nInstructions.")
         self.assertTrue(any("invalid YAML" in x for x in preflight.check_zip(self.archive())))
+
+    def test_profile_preserves_read_write_decide_and_has_only_production_tools(self):
+        profile = preflight.production_profile()
+        tools = profile["surface"]["tools"]
+        self.assertEqual(profile["profile"], "assistant-only")
+        self.assertEqual(len(tools), 22)
+        self.assertEqual({t["name"] for t in tools if t["meta"]["scope"] == "lifesight.write"},
+                         {"save_budget_plan"})
+        self.assertEqual({t["name"] for t in tools if t["meta"]["scope"] == "lifesight.decide"},
+                         {"request_plan_promotion"})
+        self.assertNotIn("query_ads_intelligence", preflight.production_tool_names())
+
+    # @lat: [[openai-preflight#OpenAI public package preflight#Production profile regressions]]
+    def test_stale_reference_cannot_authorize_an_excluded_skill_or_legacy_alias(self):
+        docs = self.root / "docs"
+        docs.mkdir()
+        reference = preflight.render_tool_reference(preflight.production_profile())
+        for name in ("query_ads_intelligence", "query_ads_data", "search_lifesight_docs",
+                     "start_investigation", "raise_support_ticket", "get_support_ticket_status"):
+            with self.subTest(name=name):
+                (docs / "TOOLS.md").write_text(reference + f"\n### `{name}`: stale development tool\n")
+                skill = self.root / "skills/anomaly-triage/SKILL.md"
+                skill.write_text((ROOT / "skills/anomaly-triage/SKILL.md").read_text() + f"\nCall `{name}`.\n")
+                self.assertTrue(any(name in x and "unavailable" in x for x in preflight.check_source(self.root)))
+                self.assertTrue(any("stale" in x for x in preflight.check_tool_reference(self.root)))
+
+    def test_typo_is_rejected_but_input_and_output_fields_are_not_tools(self):
+        skill = self.root / "skills/anomaly-triage/SKILL.md"
+        skill.write_text(skill.read_text() + "\nUse start_date and poll_after_s from the results.\n")
+        self.assertEqual(preflight.check_source(self.root), [])
+        skill.write_text(skill.read_text() + "\nCall get_mmm_reprot for corroboration.\n")
+        self.assertTrue(any("get_mmm_reprot" in x for x in preflight.check_source(self.root)))
+
+    def test_review_cases_use_production_names_not_schema_fields_or_excluded_tools(self):
+        for name in ("query_ads_intelligence", "start_date"):
+            with self.subTest(name=name):
+                self.update_manifest(lambda m, name=name: m["extensions"]["com.openai"]["review"]["test_cases"]["positive"][0]
+                                     .update(tools_triggered=name))
+                self.assertTrue(any("reviewed tool" in x and name in x for x in preflight.check_source(self.root)))
+
+    def test_listing_cannot_reference_an_unavailable_operation(self):
+        self.update_manifest(lambda m: m["extensions"]["com.openai"]["interface"]
+                             .update(capabilities=["Use query_ads_intelligence for raw campaign analysis"]))
+        self.assertTrue(any("query_ads_intelligence" in x for x in preflight.check_source(self.root)))
+
+    def test_excluded_operation_in_actual_zip_is_rejected(self):
+        self.assertEqual(preflight.check_source(self.root), [])
+        skill = self.root / "skills/anomaly-triage/SKILL.md"
+        skill.write_text(skill.read_text() + "\nCall `query_ads_data` to investigate.\n")
+        self.assertTrue(any("query_ads_data" in x for x in preflight.check_zip(self.archive())))
+
+    def test_pinned_surface_tampering_fails_closed(self):
+        profile = preflight.production_profile()
+        profile["surface"]["tools"].pop()
+        fixture = Path(self.temp.name) / "tampered-profile.json"
+        fixture.write_text(json.dumps(profile))
+        with patch.object(preflight, "PROFILE_PATH", fixture):
+            self.assertTrue(any("invalid pinned" in x for x in preflight.check_source(self.root)))
+
+    def test_generated_reference_matches_pinned_surface(self):
+        self.assertEqual(preflight.check_tool_reference(ROOT), [])
+
+    def test_malformed_review_case_is_reported_without_profile_checker_crash(self):
+        self.update_manifest(lambda m: m["extensions"]["com.openai"]["review"]
+                             .update(test_cases={"positive": ["invalid"], "negative": []}))
+        self.assertTrue(any("must be an object" in x for x in preflight.check_source(self.root)))
+
+    def test_unknown_inline_operation_is_rejected_without_a_known_verb_prefix(self):
+        skill = self.root / "skills/anomaly-triage/SKILL.md"
+        skill.write_text(skill.read_text() + "\nCall `analyse_campaign_spend` for the next step.\n")
+        self.assertTrue(any("analyse_campaign_spend" in x for x in preflight.check_source(self.root)))
 
 
 if __name__ == "__main__":

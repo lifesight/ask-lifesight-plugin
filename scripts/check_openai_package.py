@@ -9,8 +9,8 @@ With `--submission` it also demands what the dashboard requires at MCP review an
 owner has them: `review.demo_recording_url` (CG3.4). Country declarations in the ZIP are optional; verify targeting in the portal."""
 from __future__ import annotations
 
-import json
 import importlib.util
+import json
 import re
 import struct
 import sys
@@ -79,12 +79,7 @@ def image_square_at_least_48(path: Path) -> str | None:
     return None
 
 
-def tool_names() -> set[str]:
-    """The server's tool names as the generated reference lists them (`docs/TOOLS.md`, the `###` headings)."""
-    return set(re.findall(r"^### `([a-z_]+)`", (ROOT / "docs/TOOLS.md").read_text(), re.M))
-
-
-def check_review(openai: dict, problems: list[str], *, submission: bool) -> None:
+def check_review(openai: dict, problems: list[str], *, submission: bool, names: set[str]) -> None:
     """`extensions.com.openai.review` (fields and counts from the submission page, read 2026-10-02): exactly five
     positive cases with a description, a prompt, the tools expected (a comma-separated string) and the observable
     behaviour; exactly three negative cases with a
@@ -95,7 +90,6 @@ def check_review(openai: dict, problems: list[str], *, submission: bool) -> None
         if submission:
             fail("review: the submission needs extensions.com.openai.review (test cases, demo recording)", problems)
         return
-    names = tool_names()
     cases = review.get("test_cases", {})
     for kind, count in REVIEW_COUNTS.items():
         items = cases.get(kind, [])
@@ -120,7 +114,7 @@ def check_review(openai: dict, problems: list[str], *, submission: bool) -> None
                 triggered = ", ".join(map(str, triggered))
             for tool in [t.strip() for t in str(triggered or "").split(",") if t.strip()]:
                 if tool not in names:
-                    fail(f"review.test_cases.{kind}[{i}] names a tool the reference does not list: {tool!r}", problems)
+                    fail(f"review.test_cases.{kind}[{i}] names a tool unavailable in production: {tool!r}", problems)
             if kind == "negative" and case.get("tools_triggered"):
                 fail(f"review.test_cases.negative[{i}] expects a tool; a negative expects none", problems)
     if not isinstance(review.get("commerce"), bool):
@@ -139,6 +133,7 @@ def main(argv: list[str] | None = None) -> int:
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     problems.extend(module.check_source(ROOT, submission=submission))
+    problems.extend(module.check_tool_reference(ROOT))
     if problems:
         print("\n".join(f"FAIL {p}" for p in problems))
         return 1
@@ -210,7 +205,7 @@ def main(argv: list[str] | None = None) -> int:
     notes = str(publication.get("release_notes") or "")
     if FIGURE.search(notes) or CONTROL.search(notes):
         fail("publication.release_notes carries a figure or a control character", problems)
-    check_review(openai, problems, submission=submission)
+    check_review(openai, problems, submission=submission, names=module.production_tool_names())
     server = mcp["mcpServers"].get("ask-lifesight", {})
     if server.get("url") != SERVER_URL or server.get("type") != "streamable-http":
         fail(f"mcp.json must name the listed server {SERVER_URL} over streamable-http: {server}", problems)

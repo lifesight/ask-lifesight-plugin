@@ -1,8 +1,10 @@
 # The ChatGPT plugin listing (WP-CG3.1)
 
-**Preflight update, 2026-10-05:** prepared version 0.2.1; countries US, GB, AU, NZ; seven malformed skill
-front matters corrected; draft ZIP inspected. Review materials, production readiness and portal scans remain
-separate. See `docs/CHATGPT_SUBMISSION.md` for the current workflow.
+**F05 update, 2026-10-10:** prepared version 0.2.2 against the production `assistant-only` profile:
+22 tools (20 read, one write, one decide). Listing copy and anomaly triage no longer promise
+excluded operations. `docs/TOOLS.md` and the package checker use a pinned harness golden surface,
+not the broader development catalog. Review materials, deployment and portal scans remain separate.
+See `docs/CHATGPT_SUBMISSION.md` for the workflow.
 
 What the package for the ChatGPT Plugins dashboard is, where each listing field comes from, the search
 terms the directory should match, and what the owner supplies at submission (WP-CG3.4). The plan is
@@ -43,7 +45,7 @@ Read from `developers.openai.com/plugins/deploy/submission` and `/plugins/build/
 | `longDescription` | 4000 | the jobs in the member's words (the twelve workflows), the terms of art, who it is for and that a workspace seat is needed for everything, the two sentences on writes and on promotion, the limitations | see the checker's output |
 | `developerName` | 80 | Lifesight | 9 |
 | `category` | one of the dashboard's titles | Productivity, **a placeholder**: the dashboard's list is not published; the owner picks at submission | |
-| `capabilities` | 20, each 120 | seven, one per thing the tools do | |
+| `capabilities` | 20, each 120 | seven, covering the available measurements, planning, creative reads and cue cards | |
 | `defaultPrompt` | 3, each 128 | three starters, each "Use Ask Lifesight to ..." and figure-free | |
 | `websiteURL`, `supportURL`, `privacyPolicyURL`, `termsOfServiceURL` | HTTPS, 1024; `supportURL` required for MCP review | `https://lifesight.io`, `https://support.lifesight.io/en/`, `https://lifesight.io/privacy-policy/`, `https://lifesight.io/terms-of-service/` (all answered 200 on 2026-10-02; `www.lifesight.io` redirects to the bare host; `lifesight.io/contact` is a 404, so support is the help centre) | |
 | `logo`, `composerIcon` | square, 48 px or more | `./assets/logo.svg`, `./assets/icon.svg` | |
@@ -97,7 +99,7 @@ the harness's selection eval), the commerce declaration and the release notes; t
 - ~~The Claude side (`.mcp.json`, `server.json`) still names `https://mcp.lifesight.io/mcp`~~ **CLOSED,
   verified 2026-10-06:** `.mcp.json`, `mcp.json`, `server.json`'s `remotes` and the README's install
   section all name `https://ask.lifesight.io/mcp`. The old 1.0 host appears nowhere in this repository
-  except in this note. `server.json` DOES still say version 0.1.0 while the plugin manifests say 0.2.1
+  except in this note. `server.json` DOES still say version 0.1.0 while the plugin manifests say 0.2.2
   (the registry entry was published at 0.1.0) — that half of the finding stands, and it is the Claude
   listing build's change, not this one; the checker compares the two plugin manifests only.
 - Three skills quote member utterances and argument formats with figures ("Meta says 4x", "what if I cut 10%",
@@ -108,3 +110,14 @@ the harness's selection eval), the commerce declaration and the release notes; t
 - `claude plugin validate .` validates only `.claude-plugin/marketplace.json`; the plugin manifest and the skills
   are checked by `claude plugin validate --strict .claude-plugin/plugin.json` and `claude plugin validate
   --strict skills`. These Claude-specific validators were not rerun for the public preflight; the original package is preserved.
+
+## Refresh the production profile and reference
+
+The profile fixture is validator input, excluded from the upload ZIP. Update it only from the reviewed harness ref and regenerate the reference together.
+
+```bash
+python -I scripts/sync_production_profile.py --harness-repo /path/to/lifesight-platform-mia-agents --ref origin/main
+python -I scripts/sync_production_profile.py --harness-repo /path/to/lifesight-platform-mia-agents --ref origin/main --check
+```
+
+Fetch the intended harness ref separately first. The script resolves an exact commit, verifies that the assistant-only golden tool names match its allowlist, and records a surface digest. The source/ZIP checks reject unavailable tool references in skills and review cases, including legacy aliases. The source checker also rejects a stale generated reference. This does not prove that the deployed revision or portal snapshot matches the ref; verify both at release time.

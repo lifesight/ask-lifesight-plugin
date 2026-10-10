@@ -1,6 +1,6 @@
 ---
 name: anomaly-triage
-description: Sort recent spend anomalies into data issues and real changes, with the ad platform's own figures beside them. Use for 'what is this spike', 'anything odd in spend'.
+description: Triage recent spend anomalies using source health and the returned measurements, distinguishing data gaps from observed changes without inventing a cause. Use for 'what is this spike', 'anything odd in spend'.
 ---
 # Anomaly triage
 
@@ -9,11 +9,13 @@ description: Sort recent spend anomalies into data issues and real changes, with
 
 ## How
 1. `detect_spend_anomalies` with `window_days` as the member said (blank = the tool's default).
-2. `get_data_source_health`: an anomaly on a source that is stale or failing is a data issue first, whatever the figure says.
-3. For each remaining anomaly, `query_ads_intelligence` in words for what the ad platform reports about that source and window. These are platform-reported figures, not incremental; say so.
+2. `get_data_source_health`: report stale or failing sources as data-quality caveats before interpreting their anomalies. Source health alone does not establish an anomaly's cause or prove that a change is real.
+3. State each anomaly's source, comparison window and figures as returned. If there are no anomalies, say so; do not search for a change the result did not show.
+4. If the question needs corroboration and the anomaly supplies concrete matching dates, use `get_attribution_report` with that `start_date` and `end_date` for the relevant performance or pacing read. Distinguish incremental measurements from platform-reported figures. Missing coverage is a limit, not corroboration; do not substitute a model's different window or guess missing dates.
+5. Raw ad/campaign drill-down and a backend investigation are unavailable through this connection. If the bounded reads cannot explain the change, say what remains unknown and suggest the specific source or campaign to inspect in the Lifesight console. Do not invent a replacement tool or retry a no-data request unchanged.
 
 ## Output
-Two lists. **Data issues**: the source, since when, what the health read says. **Real changes**: the source, the figure and the window as the anomaly result gives them, what the platform reports. Then one recommended check per real change.
+Two lists when applicable. **Data issues or gaps**: the source, since when if returned, and what the health read establishes. **Observed changes**: the source, figure and window from the anomaly result, any matching corroboration, and what remains unexplained. Then one concrete next check per observed change. If all sources are healthy or no anomaly is detected, state that result directly.
 
 ## Refuse
 Explaining an anomaly's cause beyond what a read showed; calling a data issue a performance change; calling a platform-reported change incremental.

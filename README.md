@@ -1,8 +1,8 @@
 # Ask Lifesight for Claude and ChatGPT
 
-Lifesight's marketing measurement inside Claude: marketing mix models (MMM), causal attribution,
+Lifesight's marketing measurement inside your assistant: marketing mix models (MMM), causal attribution,
 geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies,
-creative performance, the member's cue cards and the product docs, over the Ask Lifesight MCP
+creative performance and the member's cue cards, over the Ask Lifesight MCP
 server, plus the workflows members run most as skills.
 
 Every figure comes from the Lifesight platform, with its unit, currency, model and window
@@ -66,12 +66,14 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | Save a plan by name (scope `lifesight.write`) | `save_budget_plan` |
 | Make a plan the workspace's default, with your approval in the product (scope `lifesight.decide`) | `request_plan_promotion`, `get_approval_status` |
 | Is the data fresh, what looks odd in spend | `get_data_source_health`, `detect_spend_anomalies` |
-| Lifesight Ads & Creative Intelligence: ad performance, spend, campaigns and creatives across marketing platforms, as the platforms report them, in words | `query_ads_intelligence` |
+| Creative measurements and bounded spend pages | `get_creative_performance` |
+| Member-visible cues for this workspace | `get_cue_cards` |
+| Feedback on an existing product answer | `send_feedback` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
-| Raise a ticket with Lifesight support, or check one (scope `lifesight.write`) | `raise_support_ticket` |
-| A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_investigation`, `get_investigation` |
 
-The full reference, generated from the server's published surface: [docs/TOOLS.md](docs/TOOLS.md).
+The production `assistant-only` profile exposes 22 tools: 20 read-scope tools, one write and one decide. Backend investigations, model-backed ads queries, semantic documentation search and Jira support are unavailable through this connection. For those needs use the Lifesight console or [support centre](https://support.lifesight.io/en/).
+
+The full reference, generated from the pinned production surface: [docs/TOOLS.md](docs/TOOLS.md).
 
 ## Skills
 
@@ -110,8 +112,7 @@ the organisation.
 ## Limits
 
 - One optimisation at a time per connection; a solve answers inline within about 20 seconds,
-  otherwise you get a handle to read (`get_budget_optimisation`). An investigation by Mia is
-  read the same way (`get_investigation`).
+  otherwise you get a handle to read (`get_budget_optimisation`).
 - A result is cut to fit the transport (about 40,000 characters of payload); the `warnings`
   say what was cut and how to narrow (a section, a window, a filter, `response_format`
   `concise`). The product shows all of it.
@@ -138,6 +139,10 @@ platform; it uses its own short-lived credential for your identity. Lifesight's 
 https://lifesight.io/privacy-policy/.
 
 ## Changelog
+
+- 0.2.2 (prepared 2026-10-10): align listing, anomaly triage and tool reference with the production assistant-only profile; retain read/write/decide and add pinned-surface package checks. No upload or deployment is implied.
+
+Previous releases below describe their historical capability sets.
 
 - 0.2.0 (unreleased): the house style, loaded at session start; the saturation skill draws the
   response curve from `detailed` results; the investigation tools under their current names.

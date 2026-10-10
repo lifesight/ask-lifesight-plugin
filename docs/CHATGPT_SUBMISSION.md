@@ -1,6 +1,6 @@
-# ChatGPT submission runbook — updated 5 October 2026
+# ChatGPT submission runbook — F05 package update 10 October 2026
 
-The public package is prepared as version `0.2.1`. Draft setup, review submission and publication are
+The public package is prepared as version `0.2.2`. Draft setup, review submission and publication are
 separate milestones. Local checks cannot prove portal scan outcomes, reviewer access or production health.
 
 ## What is prepared
@@ -13,6 +13,12 @@ Seven previously malformed YAML descriptions are quoted correctly. The optimisat
 the entire connection read-only. Model forecasts are described as estimates. The public builder no longer
 adds an unverified ChatGPT scheduled-task instruction. Existing private hooks/bindings remain in the
 original source; the public ZIP excludes them.
+
+## Production profile alignment
+
+The package targets the assistant-only front door: 22 tools, keeping read, write and decide. Backend investigations, model-backed ads queries, semantic documentation search and Jira support are excluded.
+
+Version 0.2.2 removes the unavailable listing promises and uses bounded anomaly triage. The tool reference and validator read `tests/fixtures/production-mcp-surface.json`, pinned to the harness commit recorded there. Check against the intended harness ref with `scripts/sync_production_profile.py --check` before release; matching a source ref alone does not prove deployment or portal state.
 
 ## Build a draft ZIP
 
@@ -50,8 +56,7 @@ Review the saved draft and exercised production experience before submitting for
   zero unresolved findings; OpenAI permits some nonblocking findings to be sent for review.
 - Correct the published privacy policy to reflect actual AI processing, recipients, retention and controls.
   A reachable URL alone is insufficient. Review terms/support coverage and test the public contact route.
-- Close the access-control and scope gaps in the MIA audit, particularly support-ticket ownership,
-  persistent file imports, bounded investigation reach and approval targets. Review actual tool annotations.
+- Close the access-control and scope gaps in the MIA audit, particularly reachable profile/schema, report-error, artifact-annotation, figure-grounding and approval-target/outcome issues. Excluded Jira and investigation features are not prerequisites for this narrower listing.
 - Run the five positives on a dedicated sample-data reviewer account with read, write and decide access.
   Compare actual tool calls and outputs against the definitions; keep the three negative outcomes too.
   Definitions in the manifest do not claim execution. Promotion requires the human gate in Lifesight.
