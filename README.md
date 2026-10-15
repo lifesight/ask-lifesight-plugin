@@ -29,9 +29,18 @@ In Claude Code:
 
 The first call opens the Lifesight console login page in your browser; sign in as usual (SSO and
 MFA as in the product) and you come back connected, with every workspace you hold attached. No
-key to handle. In claude.ai and Claude Desktop, add the connector `https://ask.lifesight.io/mcp`
-from the directory; the skills below are Claude Code's, the workflows are also served as MCP
-prompts so every client gets them.
+key to handle.
+
+In chat (claude.ai and Claude Desktop) and in Cowork, add the plugin, then connect the server
+`https://ask.lifesight.io/mcp` from the plugin's Connectors tab. The skills below work in chat,
+Cowork and Claude Code alike; the workflows are also served as MCP prompts, so a client that has
+only the connector gets them too.
+
+| | Skills | House-style hook | Connector |
+|---|---|---|---|
+| Chat (claude.ai, Claude Desktop) | Yes | Ignored | Plugin's Connectors tab |
+| Cowork | Yes | Yes | Plugin's Connectors tab |
+| Claude Code | Yes | Yes | Connects on first call |
 
 For headless use (CI, the Agent SDK), mint a personal access token in the console (Settings,
 MCP) and send it as `Authorization: Bearer pat_...`; tokens last 90 days and are revoked from
@@ -83,7 +92,7 @@ Claude refuses to do (invent a budget, average two measurements, call a one-week
 
 ## House style
 
-The plugin loads a short house style into every Claude Code session
+The plugin loads a short house style into every Claude Code and Cowork session
 ([guidance/house-style.md](guidance/house-style.md), through a `SessionStart` hook): draw a chart
 wherever a result has a shape, ask the tools for `detailed` results so there is something to draw,
 and the chart each kind of question gets (saturation questions always get the response curve with
@@ -91,9 +100,9 @@ its inflection point, operating point and cap marked). Charts plot only what the
 labelled with the values as returned. It applies only to answers that use Ask Lifesight, and your
 own instructions win over it.
 
-On claude.ai and Claude Desktop the plugin's hook does not run. Paste the same file into a
-Project's instructions or your profile preferences, or have your admin provision the skills for
-the organisation.
+In chat (claude.ai and Claude Desktop) plugin hooks are ignored, so the house style does not
+load there; the skills still do. To get the house style in chat, paste the same file into a
+Project's instructions or your profile preferences.
 
 ## What a write does, and does not do
 
@@ -126,16 +135,21 @@ the organisation.
     address.
 - A connection stays signed in while you use it: its token lives 1 hour and refreshes itself,
   and the connection lapses only after 30 days without use (then Claude asks you to sign in
-  again). It keeps the workspace you switched to and its conversation threads for the same
-  time. A personal access token lives 90 days. Disconnecting a client in Lifesight (Settings,
-  Claude & MCP) takes effect within a minute.
+  again). It keeps the workspace you switched to for as long as it stays connected. A personal
+  access token lives 90 days. Disconnecting a client in Lifesight (Settings, Claude & MCP)
+  revokes its access within a minute. These sign-in rules are separate from how long records
+  are kept (see Privacy).
 
 ## Privacy
 
 Every call runs as you, in a workspace you hold, and lands on your own conversation thread in
 Lifesight with the same audit trail as the product. The server never forwards your token to the
-platform; it uses its own short-lived credential for your identity. Lifesight's privacy policy:
-https://lifesight.io/privacy-policy/.
+platform; it uses its own short-lived credential for your identity.
+
+Connector threads and audit records are retained for two years. Disconnecting revokes the
+connection's access but does not delete existing Lifesight records, or anything Claude has
+already received. For access or deletion requests, write to privacy@lifesight.io. Lifesight's
+privacy policy: https://lifesight.io/privacy-policy/.
 
 ## Changelog
 
