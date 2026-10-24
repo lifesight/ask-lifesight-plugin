@@ -15,13 +15,13 @@ description: "What a completed geo experiment found and what it did not: lift, c
 - The record says why it was run (the hypothesis) and what it was designed on (the pre-treatment window, not the treatment window). Never invent a hypothesis when the record carries none.
 - A live experiment carries `progress`: lead with where it stands and the day count.
 - A failed experiment carries the platform's own reason: give it in plain words, do not read the report again.
-- Significance is the platform's call; a non-significant result measured nothing.
+- Significance is the platform's call. A non-significant result means the effect is uncertain and the test was inconclusive, not that the test measured nothing or that the lift is zero: the true lift may lie anywhere in the confidence interval. Keep the estimate and the interval as returned, and use `power_curve` to say what size of lift the test could have detected.
 
 ## Output
-One line with the lift, its confidence interval and significance as returned; one on the treatment and control markets and how well the pre-period fitted; one on what the result means for the channel's measured return; then **Not established** for what the test did not measure.
+One line with the lift, its confidence interval and significance as returned (when not significant, say the test was inconclusive and still give the estimate and interval); one on the treatment and control markets and how well the pre-period fitted; one on what the result means for the channel's measured return; then **Not established** for what the test did not measure.
 
 ## Refuse
-Calling a non-significant result a lift; extrapolating the lift to spend levels the test did not run; quoting a figure from the list rather than the report.
+Calling a non-significant result a lift, or proof of no effect; dropping a non-significant result's estimate and interval; extrapolating the lift to spend levels the test did not run; quoting a figure from the list rather than the report.
 
 ## Rules that hold for every step
 
