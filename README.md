@@ -75,12 +75,13 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | Save a plan by name (scope `lifesight.write`) | `save_budget_plan` |
 | Make a plan the workspace's default, with your approval in the product (scope `lifesight.decide`) | `request_plan_promotion`, `get_approval_status` |
 | Is the data fresh, what looks odd in spend | `get_data_source_health`, `detect_spend_anomalies` |
-| Lifesight Ads & Creative Intelligence: ad performance, spend, campaigns and creatives across marketing platforms, as the platforms report them, in words | `query_ads_intelligence` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
-| Raise a ticket with Lifesight support, or check one (scope `lifesight.write`) | `raise_support_ticket` |
-| A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_investigation`, `get_investigation` |
 
 The full reference, generated from the server's published surface: [docs/TOOLS.md](docs/TOOLS.md).
+
+This connector does not run backend investigations, answer model-backed ads questions in words,
+search Lifesight's product documentation, or raise/read a Jira support ticket. Those are other
+Lifesight surfaces, not this restricted connector profile.
 
 ## Skills
 
@@ -104,23 +105,38 @@ In chat (claude.ai and Claude Desktop) plugin hooks are ignored, so the house st
 load there; the skills still do. To get the house style in chat, paste the same file into a
 Project's instructions or your profile preferences.
 
-## What a write does, and does not do
+## What changes something, and what it does not do
 
+Six of the 22 tools change something. All six ask Claude to confirm with you first; four of them
+still sit under the `lifesight.read` scope because what they change is the connection's own
+working state, not a Lifesight record, so read access alone grants them:
+
+- `switch_workspace` changes which of your workspaces the connection is pointed at. Every later
+  call runs there until you switch again or reconnect. (`lifesight.read`)
+- `send_feedback` records your verdict against an existing Ask Lifesight product answer you own.
+  It needs that answer's thread and turn ids; it does not create a new investigation or ticket.
+  (`lifesight.read`)
+- `start_budget_optimisation` creates a scratch scenario to hold the solve while it runs, and can
+  retire a previous scratch scenario it superseded. Nothing is saved under a name yet.
+  (`lifesight.read`)
+- `compare_budget_scenarios` runs scenario work with the same scratch-state effects as starting
+  one. (`lifesight.read`)
 - `save_budget_plan` saves an optimised plan under a name you give; it appears in the console
-  under your name. It does not change what the workspace plans against.
+  under your name. It does not change what the workspace plans against. (`lifesight.write`)
 - `request_plan_promotion` never promotes. It optimises, then pauses; you approve or reject it
   in the Lifesight product (the request shows in your Mia conversation list as "Claude
   connection"), and `get_approval_status` reads the decision. Promotion sets the workspace's
   default plan, the one the team plans against. It is not a financial transaction: no money
-  moves, no payment runs, no ad-platform spend changes.
-- A connection holds `lifesight.read` unless a workspace admin grants `lifesight.write` or `lifesight.decide` to
-  it. A scope the connection does not hold is refused, and Claude says so.
+  moves, no payment runs, no ad-platform spend changes. (`lifesight.decide`)
+
+A connection holds `lifesight.read` unless a workspace admin grants `lifesight.write` or
+`lifesight.decide` to it. A scope the connection does not hold is refused, and Claude says so.
+`lifesight.read` is not "no state changes" — it is "no change to a named, saved Lifesight record."
 
 ## Limits
 
 - One optimisation at a time per connection; a solve answers inline within about 20 seconds,
-  otherwise you get a handle to read (`get_budget_optimisation`). An investigation by Mia is
-  read the same way (`get_investigation`).
+  otherwise you get a handle to read (`get_budget_optimisation`).
 - A result is cut to fit the transport (about 40,000 characters of payload); the `warnings`
   say what was cut and how to narrow (a section, a window, a filter, `response_format`
   `concise`). The product shows all of it.
