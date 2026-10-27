@@ -28,7 +28,7 @@ Parameters:
 
 Scope `lifesight.read`. destructive, idempotent.
 
-The member's verdict on an Ask Lifesight answer, recorded against the thread and turn ids the answer carried: thumbs up or down with an optional note, feeding Lifesight's evaluation set. Use this when the member says an investigation's answer was right, wrong or unhelpful. Not for a problem that needs a human (that is raise_support_ticket) or feedback on a typed tool's result (nothing records that). Example: turn_id="<turn>", verdict="down", note="the Meta figure was last year's".
+The member's verdict on an Ask Lifesight answer, recorded against the thread and turn ids the answer carried: thumbs up or down with an optional note, feeding Lifesight's evaluation set. Use this when the member says an existing Ask Lifesight product answer was right, wrong or unhelpful. Not for submitting a support ticket or feedback on a measurement tool's result (nothing records that). Example: turn_id="<turn>", verdict="down", note="the Meta figure was last year's".
 
 Parameters:
 
@@ -63,30 +63,6 @@ Parameters:
 - `draft` (required), string: The answer about to be shown, as text.
 - `thread_id`, string: A thread of the member's to check against; the connection's thread in the workspace otherwise.
 - `workspace_id`, string: The workspace whose thread to check against; the active one otherwise.
-
-### `start_investigation`: Start an Ask Lifesight investigation
-
-Scope `lifesight.read`. destructive, open-world.
-
-Ask Lifesight, Lifesight's own investigator, started on a thread in the active workspace and returned at once with thread_id, turn_id and the thread's link: it reads the platform with the tools listed on this server, reconciles the figures and drafts the answer with charts over minutes. Use this when the member asks by name for a full investigation or a report with several parts and figures to reconcile, or to continue a thread from the product (thread_id). Not for a single figure, table or curve (that is the typed tools) or reading the answer (get_investigation). One question at a time per thread. Example: question="Why did Meta's return fall in Q3 and what should we change?".
-
-Parameters:
-
-- `question` (required), string: What to investigate, in the member's words.
-- `thread_id`, string: Continue this thread of the member's; the connection's thread otherwise.
-- `workspace_id`, string: Run in this workspace for this call only.
-
-### `get_investigation`: Read an Ask Lifesight investigation
-
-Scope `lifesight.read`. read-only, idempotent.
-
-An Ask Lifesight thread, read: with a turn_id that turn (running with its progress, which carries poll_after_s, or completed with the answer in summary, the charts as resources and any pending approval); without one the thread's latest completed answer. Use this when an investigation was started and the member is waiting for its answer, or asks what a thread concluded. Not for starting one (that is start_investigation) or a solve's result (get_budget_optimisation). Example: thread_id="<thread>", turn_id="<turn>".
-
-Parameters:
-
-- `thread_id` (required), string: The thread start_investigation returned.
-- `turn_id`, string: The turn to read; the latest completed one otherwise.
-- `workspace_id`, string: The workspace of the thread; the active one otherwise.
 
 ## budget-planning
 
@@ -204,19 +180,6 @@ Parameters:
 - `total_budget` (required), number: The budget to plan, in the model's currency, as the member stated it.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
-## ads-intelligence
-
-### `query_ads_intelligence`: Lifesight Ads & Creative Intelligence
-
-Scope `lifesight.read`. read-only, idempotent, open-world.
-
-Analyze ad performance, spend, campaigns, and creatives across marketing platforms. The ad platforms' own reported figures from the workspace's ads mart in BigQuery (spend, impressions, clicks, conversions, ROAS and CPA by platform, campaign and day), answered in words by Lifesight's data agent for the workspace: one fixed operation, a read of that mart; platform-reported figures, not the model's incremental ones. Use this when the member asks what a platform reported, spend by campaign or week, or clicks and impressions. Not for what a channel drove (that is get_mmm_report) or what was incremental (get_attribution_report). Rows are capped; the question names platforms, metrics and the window. Example: question="Google Ads spend by week last month".
-
-Parameters:
-
-- `question` (required), string: The question, in words, naming platforms, metrics and the window.
-- `workspace_id`, string: Run in this workspace for this call only.
-
 ## core
 
 ### `list_mmm_models`: List MMM models
@@ -292,7 +255,7 @@ Parameters:
 
 Scope `lifesight.read`. read-only, idempotent, open-world.
 
-The workspace's geo and time incrementality experiments: without experiment_id the list, newest first (id, kind, name, status, outcome KPI, treatment dates, channels, cells), filtered by status (the platform's values), kind (GEO, TIME, EXTERNAL), channel or a name fragment; with experiment_id that experiment's report by section: results (lift and significance per cell, test vs control), recommendations (the market designs to run next), lift_over_time, power_curve, pre_period_fit, control_markets, progress (a live experiment's stage and day) and secondary_fit. Use this when the member asks what a test showed, whether the lift was significant, which experiments ran, or what to test next. Not for modelled channel effects (that is get_mmm_report) or incremental ad performance over a window (get_attribution_report). Default sections: results, recommendations, lift_over_time, progress. Lift is a percent, iROAS a multiplier, weights fractions. Example: status=["COMPLETED"] to find one, then experiment_id="<id>", sections=["results"].
+The workspace's geo and time incrementality experiments: without experiment_id the list, newest first (id, kind, name, status, outcome KPI, treatment dates, channels, cells), filtered by status (the platform's values), kind (GEO, TIME, EXTERNAL), channel or a name fragment; with experiment_id that experiment's report by section: results (lift and significance per cell, test vs control), recommendations (the market designs to run next), lift_over_time, power_curve, pre_period_fit, control_markets, progress (a live experiment's stage and day) and secondary_fit. data.results is one row per cell, the latest measurement's primary KPI; data.treatment_results the treatment measurement's once a post-treatment one exists; data.secondary_results each secondary KPI's; every row says its phase, metric_name and measurement_id. Use this when the member asks what a test showed, whether the lift was significant, which experiments ran, or what to test next. Not for modelled channel effects (that is get_mmm_report) or incremental ad performance over a window (get_attribution_report). Default sections: results, recommendations, lift_over_time, progress. Lift is a percent, iROAS a multiplier, weights fractions. Example: status=["COMPLETED"] to find one, then experiment_id="<id>", sections=["results"].
 
 Parameters:
 
@@ -311,13 +274,14 @@ Parameters:
 
 Scope `lifesight.read`. read-only, idempotent, open-world.
 
-Which creative tactics an MMM model measures (prospecting, retargeting, and so on) and the reported paid spend behind them, two reads in one call: the model's tactic list (has_tactics false when the model has no tactic breakdown and the list is its channels) and the workspace's resolved spend by tactic (source_table says whether the taxonomy or the raw ads mart answered). Use this when the member asks what tactics the model knows, what was spent by tactic, or wants spend beside an incrementality read. Not for what a tactic or channel drove (that is get_mmm_report) or the best ads by incremental return (get_attribution_report with analyses=["creatives"]). This is reported spend in the workspace's currency, not a modelled contribution. Example: model_id from list_mmm_models; include_spend=false for the tactic list alone.
+Which creative tactics an MMM model measures (prospecting, retargeting, and so on) and how its creative spend performs by tactic and asset type, two reads of one model in one call: the model's tactic list (has_tactics false when the model has no tactic breakdown and the list is its channels) and its Incrementality tab (data.spend): one cell per tactic and asset type (image, video) over the creative snapshot's last three months, with reported spend and attributed revenue, the model's marginal return and a verdict (state synergy, drag, neutral or cannibal; action scale, refresh, move or stop), and the tab's header tiles. data.spend.matrix_status is ok or why the cells could not be judged, and data.spend.note says it in words. Use this when the member asks what tactics the model knows, how creative spend is doing by tactic, or which tactic's creatives to scale or stop. Not for what a tactic or channel drove over a window (that is get_mmm_report) or the best ads by incremental return (get_attribution_report with analyses=["creatives"]). A cell whose row_level is channel is a whole channel, not a tactic. Spend is reported spend, not a modelled contribution. Example: model_id from list_mmm_models; include_spend=false for the tactic list alone; spend_period=3 to judge with the last three months of marginal returns.
 
 Parameters:
 
-- `include_spend`, boolean: Also read the workspace's resolved paid spend by tactic (default true).
+- `include_spend`, boolean: Also read the model's Incrementality tab: creative spend by tactic and asset type (default true).
 - `model_id` (required), string: The MMM model id from list_mmm_models.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
+- `spend_period`, integer: Months of the model's marginal returns the cells are judged with; applies when include_spend=true. One of: 3, 6, 9, 12.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
 ## data-pipeline
@@ -349,53 +313,6 @@ Parameters:
 - `window_days`, integer: The comparison window in days; the baseline is the 28 days before it, or four windows when longer.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
-## knowledge
-
-### `search_lifesight_docs`: Search Lifesight docs
-
-Scope `lifesight.read`. read-only, idempotent, open-world.
-
-The Lifesight product documentation, searched: what a term or methodology means (adstock, saturation, MMM calibration, geo lift), how a feature works, how to do something in the product; the same answer for every customer, never the member's data. Use this when the member asks what a term means, how a method works, or how to do something in Lifesight. Not for the member's own figures (those come from the model, attribution and planning tools). Returns the matching chunks as text, each headed by its document title and section, best first. mode semantic (default) fuses meaning and keyword hits and re-ranks, up to 15 chunks; keyword is the exact-term fallback ("MROAS", "MROAS OR adstock"), up to 10, for when semantic found nothing or the query is an identifier. section narrows to one documentation section; list_sections=true returns the section names instead. Concise returns the first three chunks when many matched; detailed every chunk. Example: query="what is adstock decay", or query="MROAS", mode="keyword".
-
-Parameters:
-
-- `list_sections`, boolean: Return the documentation's section names instead of searching.
-- `mode`, string: semantic fuses meaning and keyword hits; keyword is the exact-term fallback. One of: semantic, keyword.
-- `query`, string: What to look for: a question or topic in semantic mode, the exact term(s) or a boolean expression in keyword mode. Required unless list_sections is true.
-- `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
-- `section`, string: Only this documentation section (a name from list_sections). Blank searches everything. One of: INTRODUCTION, GETTING STARTED, PLATFORM, METHODOLOGIES, HOW TO'S, COMPARISONS & USE CASES, LEARN, MCP Server, PARTNERS, SECURITY & COMPLIANCE, SUPPORT, WEB DOCS.
-- `top_k`, integer: Chunks to return: up to 15 in semantic mode, 10 in keyword mode; the larger end for lists and comparisons.
-- `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
-
-## collaboration
-
-### `raise_support_ticket`: Raise a support ticket
-
-Scope `lifesight.write`. destructive, open-world.
-
-Creates a ticket with Lifesight support in the member's name (needs write access). The ticket contains summary (one line, the title), description (the member's own words), category (technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation or feature_request) and priority low, medium (default), high or critical. Use this when the member requests support or a human, disputes figures, hits a persistent error, or finds missing or wrong data. Not for documentation questions (search_lifesight_docs) or checking an existing ticket (get_support_ticket_status). Returns the new ticket key and link; the ticket is visible to Lifesight staff. Existing ticket status is read by get_support_ticket_status. Example: summary="Meta spend missing since Monday", description="<the member's words>", category="data_issue".
-
-Parameters:
-
-- `category` (required), string: What kind of issue. One of: technical_error, data_issue, customer_disagreement, agent_misbehavior, user_escalation, feature_request.
-- `description` (required), string: The member's own words about the problem.
-- `priority`, string: How urgent. One of: low, medium, high, critical.
-- `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
-- `summary` (required), string: One line, the ticket's title.
-- `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
-
-### `get_support_ticket_status`: Support ticket status
-
-Scope `lifesight.read`. read-only, idempotent, open-world.
-
-Reads an existing Lifesight support ticket belonging to the active workspace; creates or changes nothing. Use this when the member asks what happened to a ticket, using the ticket_key returned at creation. Returns its summary, state, assignee and last update. Foreign, unowned and unavailable tickets return the same unavailable response. Not for creating a ticket (raise_support_ticket). Example: ticket_key="ABC-123".
-
-Parameters:
-
-- `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
-- `ticket_key` (required), string: The key returned when the support ticket was created.
-- `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
-
 ## cue-cards
 
 ### `get_cue_cards`: Cue cards
@@ -415,10 +332,5 @@ Parameters:
 What a client reads before the first call:
 
 ```
-Lifesight marketing measurement for this member's workspaces: marketing mix models (MMM), causal attribution, geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies, creative performance, the member's cue cards, and the product docs.
-get_workspace_context, a connection's first call, gives the workspaces the member holds and the active one, the champion models with KPI, currency and data window, the promoted plan, today's date, and three questions the workspace can answer today.
-Every result is a structuredContent object: the answer in `summary`, the payload in `data`, the workspace, `provenance` (which platform read each figure came from, its unit and currency), console `links`, `warnings` (no_data, defaults taken, inputs still needed, reconciliation findings). Figures come only from tool results; the server computes compares, shares and totals, which the payload carries; check_figures reports which figures in a draft the thread's results ground. A needs_input warning carries the questions the member has still to answer.
-switch_workspace changes the active workspace for this connection; every tool also takes workspace_id for one call.
-Long work never holds a call: start_budget_optimisation answers inline when quick, else with a handle for get_budget_optimisation; start_investigation runs Ask Lifesight on a thread (a compound investigation asked for by name, or to continue a product thread) and get_investigation reads it, progress carrying poll_after_s. compare_channel_measurements puts a channel's four measurements side by side and says which to plan on. query_ads_intelligence answers in words over platform-reported figures. The prompts are the workflows members run most.
-save_budget_plan (write access) saves a plan by name; request_plan_promotion (decision access) never promotes: the member approves in the product and get_approval_status reads the decision; promotion moves no money. Access the connection lacks is refused with a sentence naming where the member enables it.
+Lifesight measurement tools for this member's authorized workspaces. This connector provides platform reads, deterministic budget workflows and figure checks. The connected assistant interprets the returned results; this front door does not run backend investigations, model-backed ads queries, semantic documentation search or Jira support. get_workspace_context provides the workspace and model context. Results include summaries, data, provenance, units and warnings. Long budget solves return polling handles. Saving a plan requires write access; promotion requests require decision access and human approval in Lifesight. Figures are backed by recorded tool results.
 ```
