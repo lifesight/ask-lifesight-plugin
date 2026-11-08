@@ -10,6 +10,7 @@
   "icon": "./assets/icon.svg",
   "documentationUrl": "https://docs.lifesight.io/docs/lifesight-connector-claude",
   "privacyPolicyUrl": "https://lifesight.io/privacy-policy",
+  "termsOfServiceUrl": "https://lifesight.io/terms-of-service/",
   "repository": "https://github.com/lifesight/ask-lifesight-plugin",
   "license": "Apache-2.0"
 }

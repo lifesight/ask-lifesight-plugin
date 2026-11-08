@@ -181,8 +181,8 @@ Disconnecting does not delete historical records or information already received
 
 - 0.2.2 (unreleased): align public capability claims and the reference with the restricted
   22-tool profile; distinguish twelve plugin skills from eleven remote prompts; disclose all
-  six state-changing tools; clarify storage and disconnect behavior; remove a broken optional
-  Claude terms link; keep publisher listing notes and submission procedures out of the public package.
+  six state-changing tools; clarify storage and disconnect behavior; correct the
+  Claude terms link to the confirmed service-terms URL; keep publisher listing notes and submission procedures out of the public package.
   Tool parameter blocks are retained from the previous public reference;
   no connector runtime, endpoint, OAuth, skill or hook changes are included.
 - 0.2.1: README platform/retention clarification, directory metadata and experiment-readout
