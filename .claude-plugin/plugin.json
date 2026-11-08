@@ -2,7 +2,7 @@
   "name": "ask-lifesight",
   "displayName": "Lifesight",
   "description": "Lifesight marketing measurement in Claude: MMM, causal attribution, geo experiments, budget optimisation, data health and spend anomalies over the Lifesight MIA MCP server, with the workflows members run most as skills.",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": {
     "name": "Lifesight"
   },
@@ -10,7 +10,7 @@
   "icon": "./assets/icon.svg",
   "documentationUrl": "https://docs.lifesight.io/docs/lifesight-connector-claude",
   "privacyPolicyUrl": "https://lifesight.io/privacy-policy",
-  "termsOfServiceUrl": "https://lifesight.io/terms-and-conditions",
+  "termsOfServiceUrl": "https://lifesight.io/terms-of-service/",
   "repository": "https://github.com/lifesight/ask-lifesight-plugin",
   "license": "Apache-2.0"
 }
