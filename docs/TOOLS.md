@@ -274,14 +274,15 @@ Parameters:
 
 Scope `lifesight.read`. read-only, idempotent, open-world.
 
-Which creative tactics an MMM model measures (prospecting, retargeting, and so on) and how its creative spend performs by tactic and asset type, two reads of one model in one call: the model's tactic list (has_tactics false when the model has no tactic breakdown and the list is its channels) and its Incrementality tab (data.spend): one cell per tactic and asset type (image, video) over the creative snapshot's last three months, with reported spend and attributed revenue, the model's marginal return and a verdict (state synergy, drag, neutral or cannibal; action scale, refresh, move or stop), and the tab's header tiles. data.spend.matrix_status is ok or why the cells could not be judged, and data.spend.note says it in words. Use this when the member asks what tactics the model knows, how creative spend is doing by tactic, or which tactic's creatives to scale or stop. Not for what a tactic or channel drove over a window (that is get_mmm_report) or the best ads by incremental return (get_attribution_report with analyses=["creatives"]). A cell whose row_level is channel is a whole channel, not a tactic. Spend is reported spend, not a modelled contribution. Example: model_id from list_mmm_models; include_spend=false for the tactic list alone; spend_period=3 to judge with the last three months of marginal returns.
+Which creative tactics an MMM model measures (prospecting, retargeting, and so on) and a bounded page of reported paid spend behind them, two reads in one call: the model's tactic list (has_tactics false when the model has no tactic breakdown and the list is its channels) and the workspace's resolved spend by tactic (source_table says whether the taxonomy or the raw ads mart answered). Use this when the member asks what tactics the model knows, what was spent by tactic, or wants spend beside an incrementality read. Not for what a tactic or channel drove (that is get_mmm_report) or the best ads by incremental return (get_attribution_report with analyses=["creatives"]). This is reported spend in the workspace's currency, not a modelled contribution. Spend rows are a page, not totals: spend_limit defaults to 20 (maximum 20); spend_offset defaults to 0. data.spend.next_offset locates the next page. Page offsets reflect live data and may shift when source data changes. If a transport truncation warning appears, retry the same spend_offset with a smaller spend_limit before advancing. Example: model_id from list_mmm_models; include_spend=false for the tactic list alone.
 
 Parameters:
 
-- `include_spend`, boolean: Also read the model's Incrementality tab: creative spend by tactic and asset type (default true).
+- `include_spend`, boolean: Also read the workspace's resolved paid spend by tactic (default true).
 - `model_id` (required), string: The MMM model id from list_mmm_models.
 - `response_format`, string: concise: the summary, headline figures and links (default unless the tool says otherwise). detailed: the full payload and, where the tool draws, the artifact data. One of: concise, detailed.
-- `spend_period`, integer: Months of the model's marginal returns the cells are judged with; applies when include_spend=true. One of: 3, 6, 9, 12.
+- `spend_limit`, integer: Maximum spend rows per page; applies when include_spend=true.
+- `spend_offset`, integer: Start at 0; use data.spend.next_offset for a later spend page.
 - `workspace_id`, string: Run in this workspace for this call only (a workspace id from get_workspace_context). Leave out to use the active workspace.
 
 ## data-pipeline

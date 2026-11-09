@@ -33,8 +33,10 @@ key to handle.
 
 In chat (claude.ai and Claude Desktop) and in Cowork, add the plugin, then connect the server
 `https://ask.lifesight.io/mcp` from the plugin's Connectors tab. The skills below work in chat,
-Cowork and Claude Code alike; the workflows are also served as MCP prompts, so a client that has
-only the connector gets them too.
+Cowork and Claude Code alike. The connector also serves eleven of these workflows as MCP
+prompts, so a client that has only the connector gets them too; anomaly triage is a plugin
+skill only — its text names a tool outside this connector's restricted profile, so the server
+does not list it as a prompt.
 
 | | Skills | House-style hook | Connector |
 |---|---|---|---|
@@ -170,6 +172,11 @@ privacy policy: https://lifesight.io/privacy-policy/.
 ## Changelog
 
 - 0.2.0 (unreleased): the house style, loaded at session start; the saturation skill draws the
-  response curve from `detailed` results; the investigation tools under their current names.
+  response curve from `detailed` results; the investigation tools under their current names;
+  capability claims and the tool reference cut to the 22-tool restricted profile; the Claude
+  terms link corrected to the service-terms URL; the prompt count corrected to eleven of twelve
+  workflows (anomaly triage is a plugin skill only); `get_creative_performance` documented
+  against the paged `spend_limit`/`spend_offset` contract actually deployed today, not the
+  `spend_period` contract merged to the server's `main` but not yet released.
 - 0.1.0 (2026-09-18): first release for the parallel window: 28 tools, 12 skills and prompts,
   OAuth through the console login, personal access tokens.
