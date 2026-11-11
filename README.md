@@ -2,8 +2,8 @@
 
 Lifesight's marketing measurement inside Claude: marketing mix models (MMM), causal attribution,
 geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies,
-creative performance, the member's cue cards and the product docs, over the Ask Lifesight MCP
-server, plus the workflows members run most as skills.
+creative performance and the member's cue cards, over the Ask Lifesight MCP server, plus the
+workflows members run most as skills.
 
 Every figure comes from the Lifesight platform, with its unit, currency, model and window
 stated beside it. The server computes the compares, shares and totals; the client quotes them.
@@ -15,8 +15,7 @@ The same package is a ChatGPT plugin: `plugin.json` (the open agent-plugins mani
 `extensions.com.openai.interface` block), `mcp.json` (the server at `https://ask.lifesight.io/mcp`), the
 twelve skills and the brand assets. `uv run --no-project --with jsonschema --with pyyaml python -I scripts/build_openai_zip.py --draft`
 runs local package and ZIP checks and writes `dist/ask-lifesight-chatgpt.zip` for the Plugins dashboard;
-`docs/CHATGPT_LISTING.md` records the listing fields, the search terms and what the owner supplies at
-submission.
+Publisher listing notes and submission procedures are maintained internally.
 
 ## Install
 
@@ -160,23 +159,39 @@ A connection holds `lifesight.read` unless a workspace admin grants `lifesight.w
 
 ## Privacy
 
-Every call runs as you, in a workspace you hold, and lands on your own conversation thread in
-Lifesight with the same audit trail as the product. The server never forwards your token to the
-platform; it uses its own short-lived credential for your identity.
+Calls run as you in a workspace you hold. Tool execution can record inputs and results on your
+Lifesight thread; some operations use existing records without adding their full inputs/results.
+Feedback is stored against the relevant answer. Draft text sent for figure checking is processed
+against recorded results without being added to the thread by that operation. The audit record
+uses an input digest rather than the raw inputs. The server uses a short-lived platform credential
+for your identity rather than forwarding your connector token.
 
 Connector threads and audit records are retained for two years. Disconnecting revokes the
 connection's access but does not delete existing Lifesight records, or anything Claude has
 already received. For access or deletion requests, write to privacy@lifesight.io. Lifesight's
 privacy policy: https://lifesight.io/privacy-policy/.
 
+## Disable, uninstall and disconnect
+
+Disable or remove the plugin through your client's plugin controls. In Claude Code, use
+`claude plugin disable ask-lifesight@lifesight` or
+`claude plugin uninstall ask-lifesight@lifesight`.
+Disabling or removing the plugin does not revoke a separately connected assistant's access.
+To revoke that access, disconnect the client in Lifesight Settings, Claude & MCP.
+Disconnecting does not delete historical records or information already received by the assistant.
+
 ## Changelog
 
+- 0.2.2 (unreleased): capability claims and the tool reference cut to the 22-tool restricted
+  profile; the Claude terms link corrected to the service-terms URL; the prompt count corrected
+  to eleven of twelve workflows (anomaly triage is a plugin skill only); `get_creative_performance`
+  documented against the paged `spend_limit`/`spend_offset` contract actually deployed today, not
+  the `spend_period` contract merged to the server's `main` but not yet released; removed the
+  "product docs" capability claim, which contradicted this README's own statement that the
+  connector does not search Lifesight's product documentation; publisher listing notes and
+  submission procedures moved out of the public package; added Disable/uninstall/disconnect
+  guidance and more precise Privacy wording on audit-record storage.
 - 0.2.0 (unreleased): the house style, loaded at session start; the saturation skill draws the
-  response curve from `detailed` results; the investigation tools under their current names;
-  capability claims and the tool reference cut to the 22-tool restricted profile; the Claude
-  terms link corrected to the service-terms URL; the prompt count corrected to eleven of twelve
-  workflows (anomaly triage is a plugin skill only); `get_creative_performance` documented
-  against the paged `spend_limit`/`spend_offset` contract actually deployed today, not the
-  `spend_period` contract merged to the server's `main` but not yet released.
+  response curve from `detailed` results; the investigation tools under their current names.
 - 0.1.0 (2026-09-18): first release for the parallel window: 28 tools, 12 skills and prompts,
   OAuth through the console login, personal access tokens.
