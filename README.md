@@ -2,8 +2,8 @@
 
 Lifesight's marketing measurement inside Claude: marketing mix models (MMM), causal attribution,
 geo-lift experiments, budget optimisation and saved plans, data-source health, spend anomalies,
-creative performance, the member's cue cards and the product docs, over the Ask Lifesight MCP
-server, plus the workflows members run most as skills.
+creative performance and the member's cue cards, over the Ask Lifesight MCP server, plus the
+workflows members run most as skills.
 
 Every figure comes from the Lifesight platform, with its unit, currency, model and window
 stated beside it. The server computes the compares, shares and totals; the client quotes them.
@@ -15,8 +15,7 @@ The same package is a ChatGPT plugin: `plugin.json` (the open agent-plugins mani
 `extensions.com.openai.interface` block), `mcp.json` (the server at `https://ask.lifesight.io/mcp`), the
 twelve skills and the brand assets. `uv run --no-project --with jsonschema --with pyyaml python -I scripts/build_openai_zip.py --draft`
 runs local package and ZIP checks and writes `dist/ask-lifesight-chatgpt.zip` for the Plugins dashboard;
-`docs/CHATGPT_LISTING.md` records the listing fields, the search terms and what the owner supplies at
-submission.
+Publisher listing notes and submission procedures are maintained internally.
 
 ## Install
 
@@ -33,8 +32,10 @@ key to handle.
 
 In chat (claude.ai and Claude Desktop) and in Cowork, add the plugin, then connect the server
 `https://ask.lifesight.io/mcp` from the plugin's Connectors tab. The skills below work in chat,
-Cowork and Claude Code alike; the workflows are also served as MCP prompts, so a client that has
-only the connector gets them too.
+Cowork and Claude Code alike. The connector also serves eleven of these workflows as MCP
+prompts, so a client that has only the connector gets them too; anomaly triage is a plugin
+skill only — its text names a tool outside this connector's restricted profile, so the server
+does not list it as a prompt.
 
 | | Skills | House-style hook | Connector |
 |---|---|---|---|
@@ -75,12 +76,13 @@ the champion models with their KPI, currency and data window, the promoted plan,
 | Save a plan by name (scope `lifesight.write`) | `save_budget_plan` |
 | Make a plan the workspace's default, with your approval in the product (scope `lifesight.decide`) | `request_plan_promotion`, `get_approval_status` |
 | Is the data fresh, what looks odd in spend | `get_data_source_health`, `detect_spend_anomalies` |
-| Lifesight Ads & Creative Intelligence: ad performance, spend, campaigns and creatives across marketing platforms, as the platforms report them, in words | `query_ads_intelligence` |
 | Which figures in a draft the tool results actually produced | `check_figures` |
-| Raise a ticket with Lifesight support, or check one (scope `lifesight.write`) | `raise_support_ticket` |
-| A compound investigation by Lifesight's own investigator, Mia, on a thread you can open in the product | `start_investigation`, `get_investigation` |
 
 The full reference, generated from the server's published surface: [docs/TOOLS.md](docs/TOOLS.md).
+
+This connector does not run backend investigations, answer model-backed ads questions in words,
+search Lifesight's product documentation, or raise/read a Jira support ticket. Those are other
+Lifesight surfaces, not this restricted connector profile.
 
 ## Skills
 
@@ -104,23 +106,38 @@ In chat (claude.ai and Claude Desktop) plugin hooks are ignored, so the house st
 load there; the skills still do. To get the house style in chat, paste the same file into a
 Project's instructions or your profile preferences.
 
-## What a write does, and does not do
+## What changes something, and what it does not do
 
+Six of the 22 tools change something. All six ask Claude to confirm with you first; four of them
+still sit under the `lifesight.read` scope because what they change is the connection's own
+working state, not a Lifesight record, so read access alone grants them:
+
+- `switch_workspace` changes which of your workspaces the connection is pointed at. Every later
+  call runs there until you switch again or reconnect. (`lifesight.read`)
+- `send_feedback` records your verdict against an existing Ask Lifesight product answer you own.
+  It needs that answer's thread and turn ids; it does not create a new investigation or ticket.
+  (`lifesight.read`)
+- `start_budget_optimisation` creates a scratch scenario to hold the solve while it runs, and can
+  retire a previous scratch scenario it superseded. Nothing is saved under a name yet.
+  (`lifesight.read`)
+- `compare_budget_scenarios` runs scenario work with the same scratch-state effects as starting
+  one. (`lifesight.read`)
 - `save_budget_plan` saves an optimised plan under a name you give; it appears in the console
-  under your name. It does not change what the workspace plans against.
+  under your name. It does not change what the workspace plans against. (`lifesight.write`)
 - `request_plan_promotion` never promotes. It optimises, then pauses; you approve or reject it
   in the Lifesight product (the request shows in your Mia conversation list as "Claude
   connection"), and `get_approval_status` reads the decision. Promotion sets the workspace's
   default plan, the one the team plans against. It is not a financial transaction: no money
-  moves, no payment runs, no ad-platform spend changes.
-- A connection holds `lifesight.read` unless a workspace admin grants `lifesight.write` or `lifesight.decide` to
-  it. A scope the connection does not hold is refused, and Claude says so.
+  moves, no payment runs, no ad-platform spend changes. (`lifesight.decide`)
+
+A connection holds `lifesight.read` unless a workspace admin grants `lifesight.write` or
+`lifesight.decide` to it. A scope the connection does not hold is refused, and Claude says so.
+`lifesight.read` is not "no state changes" — it is "no change to a named, saved Lifesight record."
 
 ## Limits
 
 - One optimisation at a time per connection; a solve answers inline within about 20 seconds,
-  otherwise you get a handle to read (`get_budget_optimisation`). An investigation by Mia is
-  read the same way (`get_investigation`).
+  otherwise you get a handle to read (`get_budget_optimisation`).
 - A result is cut to fit the transport (about 40,000 characters of payload); the `warnings`
   say what was cut and how to narrow (a section, a window, a filter, `response_format`
   `concise`). The product shows all of it.
@@ -142,17 +159,38 @@ Project's instructions or your profile preferences.
 
 ## Privacy
 
-Every call runs as you, in a workspace you hold, and lands on your own conversation thread in
-Lifesight with the same audit trail as the product. The server never forwards your token to the
-platform; it uses its own short-lived credential for your identity.
+Calls run as you in a workspace you hold. Tool execution can record inputs and results on your
+Lifesight thread; some operations use existing records without adding their full inputs/results.
+Feedback is stored against the relevant answer. Draft text sent for figure checking is processed
+against recorded results without being added to the thread by that operation. The audit record
+uses an input digest rather than the raw inputs. The server uses a short-lived platform credential
+for your identity rather than forwarding your connector token.
 
 Connector threads and audit records are retained for two years. Disconnecting revokes the
 connection's access but does not delete existing Lifesight records, or anything Claude has
 already received. For access or deletion requests, write to privacy@lifesight.io. Lifesight's
 privacy policy: https://lifesight.io/privacy-policy/.
 
+## Disable, uninstall and disconnect
+
+Disable or remove the plugin through your client's plugin controls. In Claude Code, use
+`claude plugin disable ask-lifesight@lifesight` or
+`claude plugin uninstall ask-lifesight@lifesight`.
+Disabling or removing the plugin does not revoke a separately connected assistant's access.
+To revoke that access, disconnect the client in Lifesight Settings, Claude & MCP.
+Disconnecting does not delete historical records or information already received by the assistant.
+
 ## Changelog
 
+- 0.2.2 (unreleased): capability claims and the tool reference cut to the 22-tool restricted
+  profile; the Claude terms link corrected to the service-terms URL; the prompt count corrected
+  to eleven of twelve workflows (anomaly triage is a plugin skill only); `get_creative_performance`
+  documented against the paged `spend_limit`/`spend_offset` contract actually deployed today, not
+  the `spend_period` contract merged to the server's `main` but not yet released; removed the
+  "product docs" capability claim, which contradicted this README's own statement that the
+  connector does not search Lifesight's product documentation; publisher listing notes and
+  submission procedures moved out of the public package; added Disable/uninstall/disconnect
+  guidance and more precise Privacy wording on audit-record storage.
 - 0.2.0 (unreleased): the house style, loaded at session start; the saturation skill draws the
   response curve from `detailed` results; the investigation tools under their current names.
 - 0.1.0 (2026-09-18): first release for the parallel window: 28 tools, 12 skills and prompts,

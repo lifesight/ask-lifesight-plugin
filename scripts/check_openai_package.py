@@ -188,7 +188,7 @@ def main(argv: list[str] | None = None) -> int:
                 fail(f"interface.{field} {label}: {hit.group(0)!r}", problems)
     for kw in manifest.get("keywords", []):
         if kw.lower() not in iface.get("longDescription", "").lower():
-            fail(f"keyword {kw!r} is not in the description (docs/CHATGPT_LISTING.md says each is)", problems)
+            fail(f"keyword {kw!r} is not in the description (each keyword must appear in the description)", problems)
     for field in ("logo", "composerIcon"):
         rel = str(iface.get(field, ""))
         path = ROOT / rel
