@@ -22,8 +22,10 @@ writes `dist/ask-lifesight-chatgpt.zip`:
 |---|---|---|
 | `plugin.json` | the manifest, the open `agent-plugins.org` 1.0.0 schema with OpenAI's `extensions.com.openai.interface` block | this repo |
 | `mcp.json` | the MCP mapping: `ask-lifesight` over streamable HTTP at `https://ask.lifesight.io/mcp` (D-10 as amended 2026-09-23) | this repo |
-| `skills/` | the twelve workflow skills with valid YAML; no generated scheduled-task promise is added | source files, checked again inside the ZIP |
-| `assets/icon.svg`, `assets/logo.svg` | the square Lifesight mark (a 100 by 100 viewBox, SVG; OpenAI asks for a square logo of at least 48 pixels, PNG, JPEG, WebP or SVG under 5 MiB, rasters at most 4096 pixels a side) | the console's `public/logos/lifesight-icon.svg` |
+| `skills/` | twelve workflow skills with valid YAML | shared `skills/` with the specific ChatGPT manifests from `openai/skills/` |
+| `assets/logo.png` | the square Lifesight mark used for the listing and composer, 718 × 718 pixels | Lifesight-supplied logo |
+
+The ChatGPT builder uses `openai/skills/<name>/SKILL.md` in place of the matching shared skill manifest. It validates those files and writes them under the usual `skills/<name>/SKILL.md` paths in the ZIP. The shared `skills/` directory remains the source for Claude.
 
 Left out on purpose: `.claude-plugin/`, `.mcp.json`, `server.json`, `hooks/`, `guidance/`, `docs/`, `README.md`
 (Claude Code, the MCP Registry and this repo's own readers). A ZIP carrying app references (`apps` or an
@@ -38,15 +40,15 @@ Read from `developers.openai.com/plugins/deploy/submission` and `/plugins/build/
 
 | Field | Limit | Value | Count |
 |---|---|---|---|
-| `displayName` | 30 | Ask Lifesight (D-21) | 13 |
+| `displayName` | 30 | Lifesight | 9 |
 | `shortDescription` | 30 | MMM, incrementality, budgets | 28 |
-| `longDescription` | 4000 | the jobs in the member's words (the twelve workflows), the terms of art, who it is for and that a workspace seat is needed for everything, the two sentences on writes and on promotion, the limitations | see the checker's output |
+| `longDescription` | 4000 | measurement use cases, workspace access, scratch scenarios and chart previews, named save, and human approval for promotion | see the checker's output |
 | `developerName` | 80 | Lifesight | 9 |
-| `category` | one of the dashboard's titles | Productivity, **a placeholder**: the dashboard's list is not published; the owner picks at submission | |
-| `capabilities` | 20, each 120 | seven, one per thing the tools do | |
-| `defaultPrompt` | 3, each 128 | three starters, each "Use Ask Lifesight to ..." and figure-free | |
-| `websiteURL`, `supportURL`, `privacyPolicyURL`, `termsOfServiceURL` | HTTPS, 1024; `supportURL` required for MCP review | `https://lifesight.io`, `https://support.lifesight.io/en/`, `https://lifesight.io/privacy-policy/`, `https://lifesight.io/terms-of-service/` (all answered 200 on 2026-10-02; `www.lifesight.io` redirects to the bare host; `lifesight.io/contact` is a 404, so support is the help centre) | |
-| `logo`, `composerIcon` | square, 48 px or more | `./assets/logo.svg`, `./assets/icon.svg` | |
+| `category` | one of the dashboard's titles | Data & Analytics | |
+| `capabilities` | 20, each 120 | six grouped capabilities from the assistant-only profile | |
+| `defaultPrompt` | 3, each 128 | three starters for covered weekly periods, budget planning and channel headroom | |
+| `websiteURL`, `supportURL`, `privacyPolicyURL`, `termsOfServiceURL` | HTTPS, 1024 | `https://lifesight.io/mcp/`, `https://lifesight.io/contact-us/`, `https://lifesight.io/privacy-policy/`, `https://lifesight.io/terms-of-service/` | |
+| `logo`, `composerIcon` | square, 48 px or more | `./assets/logo.png` | |
 | `brandColor` | | `#1b3a5c`, the mark's own | |
 
 The plan asked for a subtitle carrying the search terms; the field is 30 characters, so the terms live in the
@@ -76,7 +78,7 @@ The submission itself, step by step with every input and attestation, is `docs/C
 the manifest carries the five positive and three negative review cases (`extensions.com.openai.review`, taken from
 the harness's selection eval), the commerce declaration and the release notes; the items below stay the owner's.
 
-- The category, from the dashboard's list.
+- Confirm Data & Analytics and the four intended countries in the imported listing.
 - `extensions.com.openai.publication.countries`: a manifest field (uppercase ISO country codes, an allowlist;
   the checker validates the shape when present). The owner selected US, GB, AU and NZ on 5 October;
   omission is allowed by OpenAI and preserves saved portal targeting. A release note for

@@ -103,6 +103,28 @@ def _unique_pairs(pairs):
     return result
 
 
+def skill_overrides(root: Path) -> dict[Path, Path]:
+    """Map a shared skill's archive path to its ChatGPT-only manifest."""
+    directory = root / "openai" / "skills"
+    if directory.parent.is_symlink() or directory.is_symlink():
+        raise ValueError("openai/skills: overrides must be inside regular directories")
+    if not directory.exists():
+        return {}
+    if not directory.is_dir():
+        raise ValueError("openai/skills: expected a directory")
+
+    overrides = {}
+    for skill in sorted(directory.iterdir()):
+        source = skill / "SKILL.md"
+        target = Path("skills") / skill.name / "SKILL.md"
+        if (skill.name.startswith(".") or skill.is_symlink() or not skill.is_dir()
+                or source.is_symlink() or not source.is_file()
+                or not (root / target).is_file() or set(skill.iterdir()) != {source}):
+            raise ValueError(f"{skill.relative_to(root)}: supply one regular SKILL.md for an existing shared skill")
+        overrides[target] = source
+    return overrides
+
+
 def check_source(root: Path, *, submission: bool = False) -> list[str]:
     import yaml
 
@@ -221,6 +243,11 @@ def check_source(root: Path, *, submission: bool = False) -> list[str]:
         for path in directory.rglob("*"):
             if path.is_symlink() or not (path.is_file() or path.is_dir()):
                 problems.append(f"{path.relative_to(root)}: public component must be a regular file/directory")
+    try:
+        overrides = skill_overrides(root)
+    except (ValueError, OSError) as exc:
+        return problems + [str(exc)]
+
     names: set[str] = set()
     skills = root / "skills"
     require(skills.is_dir(), "skills directory missing")
@@ -229,7 +256,8 @@ def check_source(root: Path, *, submission: bool = False) -> list[str]:
             if not skill.is_dir() or skill.name.startswith(".") or skill.is_symlink():
                 problems.append(f"{skill.name}: immediate regular skill directory required")
                 continue
-            md = skill / "SKILL.md"
+            default_md = skill / "SKILL.md"
+            md = overrides.get(default_md.relative_to(root), default_md)
             try:
                 content = md.read_text(encoding="utf-8")
                 front = re.fullmatch(r"---\r?\n(.*?)\r?\n---\r?\n(.*)", content, re.S)
@@ -242,13 +270,15 @@ def check_source(root: Path, *, submission: bool = False) -> list[str]:
                 problems.append(f"{skill.name}: invalid YAML front matter or unreadable SKILL.md")
                 continue
             name = data.get("name")
+            if md != default_md:
+                require(name == skill.name, f"{skill.name}: ChatGPT override must use the shared skill name")
             require(text_ok(name, 64) and len(f"{manifest.get('name')}:{name}") <= 64, f"{skill.name}: invalid/overlong skill identity")
             require(text_ok(data.get("description"), 1024, multiline=True), f"{skill.name}: invalid description")
             require(bool(front[2].strip()), f"{skill.name}: empty instructions")
             if isinstance(name, str):
                 require(name not in names, f"{skill.name}: duplicate skill identity")
                 names.add(name)
-            require(not any(p != md for p in skill.rglob("SKILL.md")), f"{skill.name}: nested skill manifest")
+            require(not any(p != default_md for p in skill.rglob("SKILL.md")), f"{skill.name}: nested skill manifest")
     return problems
 
 
@@ -278,7 +308,7 @@ def check_zip(path: Path, *, submission: bool = False) -> list[str]:
                     problems.append(f"unsupported/encrypted archive member: {name!r}")
                 if info.file_size > 100 * 1024 * 1024:
                     problems.append(f"archive member exceeds 100 MiB: {name!r}")
-                if parts[0] in (".app.json", "hooks", ".git", ".claude-plugin", ".codex-plugin"):
+                if parts[0] in (".app.json", "hooks", ".git", ".claude-plugin", ".codex-plugin", "openai"):
                     problems.append(f"public upload includes unsupported/private component: {name!r}")
             entries = {unicodedata.normalize("NFKC", i.filename.rstrip("/")).casefold(): i for i in infos}
             for key in entries:
