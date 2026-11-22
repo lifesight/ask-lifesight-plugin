@@ -5,6 +5,8 @@ import importlib.util
 import json
 import shutil
 import stat
+import subprocess
+import sys
 import tempfile
 import unittest
 import zipfile
@@ -46,6 +48,45 @@ class PreflightTests(unittest.TestCase):
     def test_real_public_package_and_zip_pass_draft_checks(self):
         self.assertEqual(preflight.check_source(self.root), [])
         self.assertEqual(preflight.check_zip(self.archive()), [])
+
+    def test_build_uses_chatgpt_overrides_at_standard_skill_paths(self):
+        for directory in (".claude-plugin", "docs", "openai", "scripts"):
+            shutil.copytree(ROOT / directory, self.root / directory)
+        overrides = preflight.skill_overrides(self.root)
+        self.assertEqual({path.parent.name for path in overrides}, {
+            "budget-reallocation", "saturation-and-headroom", "weekly-performance-readout",
+        })
+        shared = {path.relative_to(self.root): path.read_bytes()
+                  for path in (self.root / "skills").glob("*/SKILL.md")}
+
+        result = subprocess.run(
+            [sys.executable, "-I", str(self.root / "scripts/build_openai_zip.py"), "--draft"],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+        with zipfile.ZipFile(self.root / "dist/ask-lifesight-chatgpt.zip") as archive:
+            self.assertEqual({path for path in archive.namelist() if path.startswith("skills/")},
+                             {path.as_posix() for path in shared})
+            self.assertFalse(any(path.startswith("openai/") for path in archive.namelist()))
+            for path, content in shared.items():
+                packed = archive.read(path.as_posix())
+                self.assertEqual((self.root / path).read_bytes(), content)
+                if path in overrides:
+                    self.assertEqual(packed, overrides[path].read_bytes())
+                    self.assertNotEqual(packed, content)
+                else:
+                    self.assertEqual(packed, content)
+
+    def test_invalid_chatgpt_manifest_is_rejected_even_with_valid_shared_skill(self):
+        override = self.root / "openai/skills/budget-reallocation/SKILL.md"
+        override.parent.mkdir(parents=True)
+        override.write_text("Missing front matter")
+        self.assertIn("budget-reallocation: invalid YAML front matter or unreadable SKILL.md",
+                      preflight.check_source(self.root))
+        problems = preflight.check_zip(self.archive())
+        self.assertIn("public upload includes unsupported/private component: "
+                      "'openai/skills/budget-reallocation/SKILL.md'", problems)
 
     def test_final_mode_requires_actual_video(self):
         self.assertTrue(any("demo_recording_url" in x for x in preflight.check_source(self.root, submission=True)))
@@ -116,6 +157,7 @@ class PreflightTests(unittest.TestCase):
         self.assertTrue(any("logoDark" in x for x in preflight.check_source(self.root)))
 
     def test_malformed_svg_rejected(self):
+        self.update_manifest(lambda m: m["extensions"]["com.openai"]["interface"].update(logo="./assets/icon.svg"))
         (self.root / "assets/icon.svg").write_text('<svg viewBox="0 0 100 100"><broken>')
         self.assertTrue(any("malformed XML" in x for x in preflight.check_source(self.root)))
 

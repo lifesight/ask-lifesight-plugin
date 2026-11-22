@@ -28,6 +28,11 @@ def main() -> int:
     check = subprocess.run(command)
     if check.returncode:
         return check.returncode
+    spec = importlib.util.spec_from_file_location("openai_preflight", ROOT / "scripts/openai_preflight.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    overrides = module.skill_overrides(ROOT)
+
     OUT.parent.mkdir(exist_ok=True)
     with zipfile.ZipFile(OUT, "w", zipfile.ZIP_DEFLATED) as archive:
         for name in ("plugin.json", "mcp.json"):
@@ -35,10 +40,8 @@ def main() -> int:
         for directory in ("skills", "assets"):
             for path in sorted((ROOT / directory).rglob("*")):
                 if path.is_file() and "__pycache__" not in path.parts:
-                    archive.write(path, path.relative_to(ROOT).as_posix())
-    spec = importlib.util.spec_from_file_location("openai_preflight", ROOT / "scripts/openai_preflight.py")
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
+                    relative = path.relative_to(ROOT)
+                    archive.write(overrides.get(relative, path), relative.as_posix())
     problems = module.check_zip(OUT, submission=args.submission)
     if problems:
         OUT.unlink()

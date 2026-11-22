@@ -217,8 +217,10 @@ def main(argv: list[str] | None = None) -> int:
     skills = sorted(p for p in (ROOT / "skills").iterdir() if p.is_dir())
     if not skills:
         fail("no skills", problems)
+    overrides = module.skill_overrides(ROOT)
     for skill in skills:
-        md = skill / "SKILL.md"
+        default_md = skill / "SKILL.md"
+        md = overrides.get(default_md.relative_to(ROOT), default_md)
         if not md.is_file():
             fail(f"{skill.name}: no SKILL.md", problems)
             continue
@@ -229,7 +231,7 @@ def main(argv: list[str] | None = None) -> int:
             fail(f"{skill.name}: SKILL.md frontmatter needs name and description", problems)
         if md.stat().st_size > 256 * 1024:
             fail(f"{skill.name}: SKILL.md over 256 KiB", problems)
-        files = [p for p in skill.rglob("*") if p.is_file()]
+        files = [md if p == default_md else p for p in skill.rglob("*") if p.is_file()]
         if len(files) > 100:
             fail(f"{skill.name}: over 100 files", problems)
         if any(p.stat().st_size > 1024 * 1024 for p in files):
